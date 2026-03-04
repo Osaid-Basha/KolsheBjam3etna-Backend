@@ -49,7 +49,7 @@ namespace KolsheBjam3etna.BLL.Service.Class
             user.StudyYear = request.StudyYear;
             user.UniversityNumber = request.UniversityNumber;
 
-            // اعتبر البروفايل اكتمل بعد الأكاديمي (حسب منطقك)
+          
             user.IsProfileCompleted = true;
 
             var result = await _userManager.UpdateAsync(user);

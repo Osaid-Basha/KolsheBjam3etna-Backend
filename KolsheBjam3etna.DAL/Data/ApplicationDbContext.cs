@@ -15,7 +15,8 @@ namespace KolsheBjam3etna.DAL.Data
 
         public DbSet<PasswordResetCode> PasswordResetCodes { get; set; }
         public DbSet<University> Universities { get; set; }
-
+        public DbSet<Conversation> Conversations => Set<Conversation>();
+        public DbSet<Message> Messages => Set<Message>();
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
 
@@ -29,6 +30,30 @@ namespace KolsheBjam3etna.DAL.Data
             builder.Entity<IdentityUserClaim<string>>().ToTable("UserClaims");
             builder.Entity<IdentityUserLogin<string>>().ToTable("UserLogins");
             builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims");
+            builder.Entity<Conversation>()
+       .HasOne(c => c.User1)
+       .WithMany()
+       .HasForeignKey(c => c.User1Id)
+       .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<Conversation>()
+                .HasOne(c => c.User2)
+                .WithMany()
+                .HasForeignKey(c => c.User2Id)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<Message>()
+                .HasOne(m => m.Sender)
+                .WithMany()
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<Message>()
+                .HasOne(m => m.Conversation)
+                .WithMany(c => c.Messages)
+                .HasForeignKey(m => m.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
 
         }
     }

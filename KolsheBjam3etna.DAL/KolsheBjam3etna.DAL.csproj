@@ -24,8 +24,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="Repository\Class\" />
-		<Folder Include="Repository\Interface\" />
+	  <None Include="Models\Conversation.cs" />
 	</ItemGroup>
 
 </Project>

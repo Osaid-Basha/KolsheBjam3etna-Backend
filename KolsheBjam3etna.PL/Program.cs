@@ -2,12 +2,15 @@ using KolsheBjam3etna.BLL.Service.Class;
 using KolsheBjam3etna.BLL.Service.Interface;
 using KolsheBjam3etna.DAL.Data;
 using KolsheBjam3etna.DAL.Models;
+using KolsheBjam3etna.DAL.Repository.Class;
+using KolsheBjam3etna.DAL.Repository.Interface;
 using KolsheBjam3etna.DAL.Utils;
+using KolsheBjam3etna.PL.Hubs;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Scalar.AspNetCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
 using System.Text;
 namespace KolsheBjam3etna.PL
 {
@@ -60,6 +63,13 @@ namespace KolsheBjam3etna.PL
             builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
             builder.Services.AddScoped<ILocalFileStorageService, LocalFileStorageService>();
             builder.Services.AddScoped<IUpdateProfileService, UpdateProfileService>();
+            builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
+            builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+            builder.Services.AddSignalR();
+
+            builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
+            builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+            builder.Services.AddScoped<IChatService, ChatService>();
 
             var app = builder.Build();
             if (app.Environment.IsDevelopment())
@@ -67,6 +77,7 @@ namespace KolsheBjam3etna.PL
                 app.MapOpenApi();                 
                 app.MapScalarApiReference();      
             }
+            app.MapHub<ChatHub>("/hubs/chat");
             app.UseStaticFiles();
             app.UseAuthentication();
             app.UseAuthorization();
