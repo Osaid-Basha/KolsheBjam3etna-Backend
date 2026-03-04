@@ -8,9 +8,12 @@ namespace KolsheBjam3etna.BLL.Service.Interface
         Task<RegisterResponse> Register(RegisterRequest request);
         Task<LoginResponse> Login(LoginRequest request);
 
-        Task<string> ForgotPassword(string email);
-        Task<bool> VerifyResetCode(string email, string code);
-        Task<string> ResetPassword(string email, string code, string newPassword);
-        Task<string> CompleteProfile(string userId, CompleteProfileRequest request);
+        Task<ApiResponse<object>> ForgotPassword(string email);
+
+        Task<ApiResponse<object>> VerifyResetCode(string email, string code);
+
+        Task<ApiResponse<object>> ResetPassword(string email, string code, string newPassword);
+
+        Task<ApiResponse<ProfileResponse>> CompleteProfile(string userId, CompleteProfileRequest request);
     }
 }

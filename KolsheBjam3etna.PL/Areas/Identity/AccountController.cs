@@ -1,8 +1,10 @@
-﻿using KolsheBjam3etna.BLL.Service.Interface;
+﻿using KolsheBjam3etna.BLL.Service.Class;
+using KolsheBjam3etna.BLL.Service.Interface;
 using KolsheBjam3etna.DAL.DTOs.Request;
+using KolsheBjam3etna.DAL.DTOs.Response;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 namespace KolsheBjam3etna.PL.Areas.Identity
 {
     [Route("api/[controller]")]
@@ -10,10 +12,12 @@ namespace KolsheBjam3etna.PL.Areas.Identity
     public class AccountController : ControllerBase
     {
         private readonly IAuthenticationService _authenticationService;
+        private readonly IUpdateProfileService _updateProfile;
 
-        public AccountController(IAuthenticationService authenticationService)
+        public AccountController(IAuthenticationService authenticationService,IUpdateProfileService updateProfile)
         {
             _authenticationService = authenticationService;
+            _updateProfile = updateProfile;
         }
 
        
@@ -40,48 +44,101 @@ namespace KolsheBjam3etna.PL.Areas.Identity
             return Ok(response);
         }
 
-        
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
-            var result = await _authenticationService.ForgotPassword(request.Email);
-            return Ok(new { message = result });
+            var response = await _authenticationService.ForgotPassword(request.Email);
+            return response.Success ? Ok(response) : BadRequest(response);
         }
 
-        
         [HttpPost("verify-reset-code")]
         public async Task<IActionResult> VerifyResetCode([FromBody] VerifyResetCodeRequest request)
         {
-            var valid = await _authenticationService.VerifyResetCode(request.Email, request.Code);
-
-            if (!valid)
-                return BadRequest("Invalid or expired code");
-
-            return Ok(new { message = "Code verified successfully" });
+            var response = await _authenticationService.VerifyResetCode(request.Email, request.Code);
+            return response.Success ? Ok(response) : BadRequest(response);
         }
 
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
         {
-            var result = await _authenticationService.ResetPassword(
-                request.Email,
-                request.Code,
-                request.NewPassword);
-
-            return Ok(new { message = result });
+            var response = await _authenticationService.ResetPassword(request.Email, request.Code, request.NewPassword);
+            return response.Success ? Ok(response) : BadRequest(response);
         }
 
+        [Authorize]
+        [HttpPost("complete-profile")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> CompleteProfile([FromForm] CompleteProfileRequest request)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized(new ApiResponse<object>(false, "Unauthorized"));
 
-    [Authorize]
-    [HttpPost("complete-profile")]
-    public async Task<IActionResult> CompleteProfile([FromForm] CompleteProfileRequest request)
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+            var response = await _authenticationService.CompleteProfile(userId, request);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
 
-        var result = await _authenticationService.CompleteProfile(userId, request);
-        return Ok(new { message = result });
+        // ---------------- PROFILE ----------------
+
+        [Authorize]
+        [HttpPut("profile/personal")]
+        public async Task<IActionResult> UpdatePersonal([FromBody] UpdatePersonalProfileRequest request)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized(new ApiResponse<object>(false, "Unauthorized"));
+
+            var response = await _updateProfile.UpdatePersonalProfile(userId, request);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [Authorize]
+        [HttpPost("profile/photo")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadPhoto([FromForm] UploadProfilePhotoRequest request)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized(new ApiResponse<object>(false, "Unauthorized"));
+
+            var response = await _updateProfile.UploadProfilePhoto(userId, request.ProfileImage);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [Authorize]
+        [HttpPut("profile/academic")]
+        public async Task<IActionResult> UpdateAcademic([FromBody] UpdateAcademicProfileRequest request)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized(new ApiResponse<object>(false, "Unauthorized"));
+
+            var response = await _updateProfile.UpdateAcademicProfile(userId, request);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [Authorize]
+        [HttpPut("profile/password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized(new ApiResponse<object>(false, "Unauthorized"));
+
+            var response = await _updateProfile.ChangePassword(userId, request);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized(new ApiResponse<object>(false, "Unauthorized"));
+
+            var response = await _updateProfile.GetProfile(userId);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
     }
-
-}
 }

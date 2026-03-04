@@ -59,6 +59,7 @@ namespace KolsheBjam3etna.PL
             builder.Services.AddScoped<ISeedData, UniversitySeedData>();
             builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
             builder.Services.AddScoped<ILocalFileStorageService, LocalFileStorageService>();
+            builder.Services.AddScoped<IUpdateProfileService, UpdateProfileService>();
 
             var app = builder.Build();
             if (app.Environment.IsDevelopment())

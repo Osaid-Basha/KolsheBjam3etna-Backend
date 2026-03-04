@@ -136,15 +136,18 @@ namespace KolsheBjam3etna.BLL.Service.Class
             // 100000 - 999999
             return RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
         }
-        public async Task<string> ForgotPassword(string email)
+        public async Task<ApiResponse<object>> ForgotPassword(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
-            if (user == null) return "If the email exists, a code was sent."; 
+
+            if (user == null)
+                return new ApiResponse<object>(true, "If the email exists, a code was sent.");
 
             var code = Generate6DigitCode();
 
-           
-            var old = _dbContext.PasswordResetCodes.Where(x => x.UserId == user.Id && !x.Used);
+            var old = _dbContext.PasswordResetCodes
+                .Where(x => x.UserId == user.Id && !x.Used);
+
             _dbContext.PasswordResetCodes.RemoveRange(old);
 
             _dbContext.PasswordResetCodes.Add(new PasswordResetCode
@@ -156,112 +159,22 @@ namespace KolsheBjam3etna.BLL.Service.Class
             });
 
             await _dbContext.SaveChangesAsync();
-            var body = $@"
-<html>
-<head>
-<style>
-body {{
-    font-family: Arial, sans-serif;
-    background-color: #f4f6f9;
-    padding: 30px;
-}}
 
-.container {{
-    max-width: 500px;
-    margin: auto;
-    background: white;
-    border-radius: 10px;
-    padding: 30px;
-    text-align: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}}
+            var body = $"Your verification code is: {code}";
 
-.logo {{
-    font-size: 22px;
-    font-weight: bold;
-    color: #2563eb;
-    margin-bottom: 20px;
-}}
-
-.code {{
-    font-size: 36px;
-    font-weight: bold;
-    letter-spacing: 8px;
-    background: #f1f5f9;
-    padding: 15px;
-    border-radius: 8px;
-    margin: 20px 0;
-}}
-
-.footer {{
-    color: #6b7280;
-    font-size: 12px;
-    margin-top: 20px;
-}}
-</style>
-</head>
-
-<body>
-
-<div class='container'>
-
-<div class='logo'>
-🎓 KolsheBjam3etna
-</div>
-
-<h2>Password Reset</h2>
-
-<p>You requested to reset your password.</p>
-
-<p>Your verification code is:</p>
-
-<div class='code'>
-{code}
-</div>
-
-<p>This code will expire in <b>2 minutes</b>.</p>
-
-<div class='footer'>
-If you didn't request this, you can safely ignore this email.
-</div>
-
-</div>
-
-</body>
-</html>
-";
-            // TODO: Email Sender
             await _emailService.SendAsync(
-     email,
-     "Password Reset Code",
-     body
- );
+                email,
+                "Password Reset Code",
+                body
+            );
 
-            return "If the email exists, a code was sent.";
+            return new ApiResponse<object>(true, "If the email exists, a code was sent.");
         }
-        public async Task<bool> VerifyResetCode(string email, string code)
+        public async Task<ApiResponse<object>> VerifyResetCode(string email, string code)
         {
             var user = await _userManager.FindByEmailAsync(email);
-            if (user == null) return false;
-
-            var hash = HashCode(code);
-
-            var rec = await _dbContext.PasswordResetCodes
-                .OrderByDescending(x => x.CreatedAtUtc)
-                .FirstOrDefaultAsync(x =>
-                    x.UserId == user.Id &&
-                    !x.Used &&
-                    x.CodeHash == hash);
-
-            if (rec == null) return false;
-            if (rec.ExpiresAtUtc < DateTime.UtcNow) return false;
-
-            return true;
-        }
-        public async Task<string> ResetPassword(string email, string code, string newPassword)
-        {
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null) return "Invalid code or email.";
+            if (user == null)
+                return new ApiResponse<object>(false, "Invalid or expired code");
 
             var hash = HashCode(code);
 
@@ -273,38 +186,82 @@ If you didn't request this, you can safely ignore this email.
                     x.CodeHash == hash);
 
             if (rec == null || rec.ExpiresAtUtc < DateTime.UtcNow)
-                return "Invalid or expired code.";
+                return new ApiResponse<object>(false, "Invalid or expired code");
 
-            // Identity Reset:
+            return new ApiResponse<object>(true, "Code verified successfully");
+        }
+        public async Task<ApiResponse<object>> ResetPassword(string email, string code, string newPassword)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+                return new ApiResponse<object>(false, "Invalid code or email");
+
+            var hash = HashCode(code);
+
+            var rec = await _dbContext.PasswordResetCodes
+                .OrderByDescending(x => x.CreatedAtUtc)
+                .FirstOrDefaultAsync(x =>
+                    x.UserId == user.Id &&
+                    !x.Used &&
+                    x.CodeHash == hash);
+
+            if (rec == null || rec.ExpiresAtUtc < DateTime.UtcNow)
+                return new ApiResponse<object>(false, "Invalid or expired code");
+
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
             var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
 
             if (!result.Succeeded)
-                return "Reset failed: " + string.Join(", ", result.Errors.Select(e => e.Description));
+                return new ApiResponse<object>(
+                    false,
+                    "Reset failed: " + string.Join(", ", result.Errors.Select(e => e.Description))
+                );
 
             rec.Used = true;
             await _dbContext.SaveChangesAsync();
 
-            return "Password reset successful.";
+            return new ApiResponse<object>(true, "Password reset successful");
         }
-        public async Task<string> CompleteProfile(string userId, CompleteProfileRequest request)
+        public async Task<ApiResponse<ProfileResponse>> CompleteProfile(string userId, CompleteProfileRequest request)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null) return "User not found";
+
+            if (user == null)
+                return new ApiResponse<ProfileResponse>(false, "User not found");
 
             string? imageUrl = null;
+
             if (request.ProfileImageUrl != null)
                 imageUrl = await _localFileStorage.SaveProfileImageAsync(request.ProfileImageUrl);
 
             user.UniversityId = request.UniversityId;
             user.Major = request.Major;
             user.Bio = request.Bio;
-            if (imageUrl != null) user.ProfileImageUrl = imageUrl;
+
+            if (imageUrl != null)
+                user.ProfileImageUrl = imageUrl;
 
             user.IsProfileCompleted = true;
+
             await _userManager.UpdateAsync(user);
 
-            return "Profile completed successfully";
+            var response = new ProfileResponse
+            {
+                FullName = user.FullName,
+                Email = user.Email,
+                Bio = user.Bio,
+                Major = user.Major,
+                UniversityId = user.UniversityId,
+                ProfileImageUrl = user.ProfileImageUrl
+            };
+
+            return new ApiResponse<ProfileResponse>(
+                true,
+                "Profile completed successfully",
+                response
+            );
         }
     }
 

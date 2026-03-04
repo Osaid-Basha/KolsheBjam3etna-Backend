@@ -8,5 +8,6 @@ namespace KolsheBjam3etna.BLL.Service.Interface
     public interface ILocalFileStorageService
     {
         Task<string?> SaveProfileImageAsync(IFormFile file);
+        
     }
 }
