@@ -83,6 +83,8 @@ namespace KolsheBjam3etna.PL
             builder.Services.AddScoped<IEventService, EventService>();
             builder.Services.AddScoped<IEventPublicRepository, EventPublicRepository>();
             builder.Services.AddScoped<IEventPublicService, EventPublicService>();
+            builder.Services.AddScoped<IAdminService, AdminService>();
+            builder.Services.AddScoped<IAdminRolesService, AdminRolesService>();
 
             var app = builder.Build();
             if (app.Environment.IsDevelopment())
