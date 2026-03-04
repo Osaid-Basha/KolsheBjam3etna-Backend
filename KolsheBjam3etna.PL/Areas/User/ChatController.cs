@@ -71,5 +71,23 @@ namespace KolsheBjam3etna.PL.Areas.Identity
             var count = await _chat.MarkReadAsync(MyId, conversationId);
             return Ok(new { marked = count });
         }
+        [HttpPost("send-image")]
+        public async Task<IActionResult> SendImage([FromForm] SendImageMessageRequest request)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var msg = await _chat.SendImageAsync(userId, request.ConversationId, request.Image, request.Caption);
+
+            return Ok(new
+            {
+                messageId = msg.Id,
+                conversationId = msg.ConversationId,
+                type = msg.Type.ToString(),
+                text = msg.Text,
+                imageUrl = msg.ImageUrl,
+                sentAtUtc = msg.SentAtUtc
+            });
+        }
     }
 }

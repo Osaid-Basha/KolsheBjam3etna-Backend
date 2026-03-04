@@ -1,5 +1,7 @@
 ﻿using KolsheBjam3etna.DAL.DTOs.Request;
 using KolsheBjam3etna.DAL.DTOs.Response;
+using KolsheBjam3etna.DAL.Models;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,5 +20,6 @@ namespace KolsheBjam3etna.BLL.Service.Interface
 
         Task<int> MarkReadAsync(string myUserId, int conversationId);
         Task<string> GetReceiverIdAsync(string myUserId, int conversationId);
+        Task<Message> SendImageAsync(string senderId, int conversationId, IFormFile image, string? caption);
     }
 }

@@ -3,6 +3,7 @@ using KolsheBjam3etna.DAL.DTOs.Request;
 using KolsheBjam3etna.DAL.DTOs.Response;
 using KolsheBjam3etna.DAL.Models;
 using KolsheBjam3etna.DAL.Repository.Interface;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -16,14 +17,19 @@ namespace KolsheBjam3etna.BLL.Service.Class
         private readonly IMessageRepository _msgRepo;
         private readonly UserManager<ApplicationUser> _userManager;
 
+        private readonly ILocalFileStorageService _localFileStorage;
+
         public ChatService(
             IConversationRepository convRepo,
             IMessageRepository msgRepo,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            ILocalFileStorageService localFileStorage
+        )
         {
             _convRepo = convRepo;
             _msgRepo = msgRepo;
             _userManager = userManager;
+            _localFileStorage = localFileStorage;
         }
 
         public async Task<int> CreateOrGetDmAsync(string myUserId, string otherUserId)
@@ -158,6 +164,25 @@ namespace KolsheBjam3etna.BLL.Service.Class
                 throw new Exception("Forbidden.");
 
             return conv.User1Id == myUserId ? conv.User2Id : conv.User1Id;
+        }
+        public async Task<Message> SendImageAsync(string senderId, int conversationId, IFormFile image, string? caption)
+        {
+            var imageUrl = await _localFileStorage.SaveChatImageAsync(image);
+            if (imageUrl == null) throw new Exception("Upload failed");
+
+            var msg = new Message
+            {
+                ConversationId = conversationId,
+                SenderId = senderId,
+                Type = MessageType.Image,
+                ImageUrl = imageUrl,
+                Text = caption
+            };
+
+            await _msgRepo.AddAsync(msg);  
+            await _msgRepo.SaveChangesAsync();
+
+            return msg;
         }
     }
 }

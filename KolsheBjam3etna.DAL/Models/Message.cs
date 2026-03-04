@@ -4,6 +4,11 @@ using System.Text;
 
 namespace KolsheBjam3etna.DAL.Models
 {
+    public enum MessageType
+    {
+        Text = 1,
+        Image = 2
+    }
     public class Message
     {
         public long Id { get; set; }
@@ -13,8 +18,9 @@ namespace KolsheBjam3etna.DAL.Models
 
         public string SenderId { get; set; } = default!;
         public ApplicationUser Sender { get; set; } = default!;
-
-        public string Text { get; set; } = default!;
+        public MessageType Type { get; set; } = MessageType.Text;
+        public string? Text { get; set; }
+        public string? ImageUrl { get; set; }
 
         public DateTime SentAtUtc { get; set; } = DateTime.UtcNow;
 
