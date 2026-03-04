@@ -9,6 +9,7 @@ namespace KolsheBjam3etna.BLL.Service.Interface
     {
         Task<string?> SaveProfileImageAsync(IFormFile file);
         Task<string?> SaveChatImageAsync(IFormFile file);
+        Task<string?> SaveRequestFileAsync(IFormFile file);
 
 
     }

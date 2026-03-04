@@ -17,6 +17,15 @@ namespace KolsheBjam3etna.DAL.Data
         public DbSet<University> Universities { get; set; }
         public DbSet<Conversation> Conversations => Set<Conversation>();
         public DbSet<Message> Messages => Set<Message>();
+        public DbSet<ServiceCategory> ServiceCategories => Set<ServiceCategory>();
+        public DbSet<ServiceRequest> ServiceRequests => Set<ServiceRequest>();
+        public DbSet<ServiceRequestAttachment> ServiceRequestAttachments => Set<ServiceRequestAttachment>();
+        public DbSet<ProductAd> ProductAds => Set<ProductAd>();
+        public DbSet<ProductAdImage> ProductAdImages => Set<ProductAdImage>();
+        public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
+        public DbSet<SwapAd> SwapAds => Set<SwapAd>();
+
+        public DbSet<SwapAdImage> SwapAdImages => Set<SwapAdImage>();
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
 

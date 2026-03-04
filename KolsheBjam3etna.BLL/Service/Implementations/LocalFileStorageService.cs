@@ -74,5 +74,26 @@ namespace KolsheBjam3etna.BLL.Service.Class
 
             return $"/uploads/chat/{name}";
         }
+        public async Task<string?> SaveRequestFileAsync(IFormFile file)
+        {
+            if (file == null || file.Length == 0) return null;
+
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp", ".pdf" };
+            if (!allowed.Contains(ext))
+                throw new Exception("Invalid file type");
+
+            var wwwroot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var folder = Path.Combine(wwwroot, "uploads", "requests");
+            Directory.CreateDirectory(folder);
+
+            var name = $"{Guid.NewGuid()}{ext}";
+            var fullPath = Path.Combine(folder, name);
+
+            using var stream = new FileStream(fullPath, FileMode.Create);
+            await file.CopyToAsync(stream);
+
+            return $"/uploads/requests/{name}";
+        }
     }
 }

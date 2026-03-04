@@ -1,8 +1,10 @@
 using KolsheBjam3etna.BLL.Service.Class;
+using KolsheBjam3etna.BLL.Service.Implementations;
 using KolsheBjam3etna.BLL.Service.Interface;
 using KolsheBjam3etna.DAL.Data;
 using KolsheBjam3etna.DAL.Models;
 using KolsheBjam3etna.DAL.Repository.Class;
+using KolsheBjam3etna.DAL.Repository.Implementations;
 using KolsheBjam3etna.DAL.Repository.Interface;
 using KolsheBjam3etna.DAL.Utils;
 using KolsheBjam3etna.PL.Hubs;
@@ -66,10 +68,17 @@ namespace KolsheBjam3etna.PL
             builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
             builder.Services.AddScoped<IMessageRepository, MessageRepository>();
             builder.Services.AddSignalR();
-
             builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
             builder.Services.AddScoped<IMessageRepository, MessageRepository>();
             builder.Services.AddScoped<IChatService, ChatService>();
+            builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
+            builder.Services.AddScoped<ILocalFileStorageService, LocalFileStorageService>();
+            builder.Services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
+            builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
+            builder.Services.AddScoped<IProductAdService, ProductAdService>();
+            builder.Services.AddScoped<IProductAdRepository, ProductAdRepository>();   
+            builder.Services.AddScoped<ISwapAdService, SwapAdService>();
+            builder.Services.AddScoped<ISwapAdRepository, SwapAdRepository>();
 
             var app = builder.Build();
             if (app.Environment.IsDevelopment())

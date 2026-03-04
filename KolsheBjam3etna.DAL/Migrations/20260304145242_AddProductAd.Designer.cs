@@ -4,6 +4,7 @@ using KolsheBjam3etna.DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KolsheBjam3etna.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260304145242_AddProductAd")]
+    partial class AddProductAd
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -395,73 +398,6 @@ namespace KolsheBjam3etna.DAL.Migrations
                     b.ToTable("ServiceRequestAttachments");
                 });
 
-            modelBuilder.Entity("KolsheBjam3etna.DAL.Models.SwapAd", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Condition")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OfferTitle")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("WantedTitle")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("SwapAds");
-                });
-
-            modelBuilder.Entity("KolsheBjam3etna.DAL.Models.SwapAdImage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("SwapAdId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UploadedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SwapAdId");
-
-                    b.ToTable("SwapAdImages");
-                });
-
             modelBuilder.Entity("KolsheBjam3etna.DAL.Models.University", b =>
                 {
                     b.Property<int>("Id")
@@ -730,36 +666,6 @@ namespace KolsheBjam3etna.DAL.Migrations
                     b.Navigation("ServiceRequest");
                 });
 
-            modelBuilder.Entity("KolsheBjam3etna.DAL.Models.SwapAd", b =>
-                {
-                    b.HasOne("KolsheBjam3etna.DAL.Models.ProductCategory", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("KolsheBjam3etna.DAL.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("KolsheBjam3etna.DAL.Models.SwapAdImage", b =>
-                {
-                    b.HasOne("KolsheBjam3etna.DAL.Models.SwapAd", "SwapAd")
-                        .WithMany("Images")
-                        .HasForeignKey("SwapAdId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("SwapAd");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -824,11 +730,6 @@ namespace KolsheBjam3etna.DAL.Migrations
             modelBuilder.Entity("KolsheBjam3etna.DAL.Models.ServiceRequest", b =>
                 {
                     b.Navigation("Attachments");
-                });
-
-            modelBuilder.Entity("KolsheBjam3etna.DAL.Models.SwapAd", b =>
-                {
-                    b.Navigation("Images");
                 });
 
             modelBuilder.Entity("KolsheBjam3etna.DAL.Models.University", b =>
