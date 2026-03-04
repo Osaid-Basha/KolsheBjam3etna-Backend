@@ -21,13 +21,15 @@ namespace KolsheBjam3etna.BLL.Service.Class
         private readonly IConfiguration _config;
         private readonly ApplicationDbContext _dbContext;
         private readonly EmailService _emailService;
+        private readonly ILocalFileStorageService _localFileStorage;
 
-        public AuthenticationService(UserManager<ApplicationUser> userManager, IConfiguration config, ApplicationDbContext dbContext, EmailService emailService)
+        public AuthenticationService(UserManager<ApplicationUser> userManager, IConfiguration config, ApplicationDbContext dbContext, EmailService emailService,ILocalFileStorageService localFileStorage)
         {
             _userManager = userManager;
             _config = config;
             _dbContext = dbContext;
             _emailService = emailService;
+            _localFileStorage = localFileStorage;
         }
 
         public async Task<LoginResponse> Login(LoginRequest request)
@@ -288,16 +290,18 @@ If you didn't request this, you can safely ignore this email.
         public async Task<string> CompleteProfile(string userId, CompleteProfileRequest request)
         {
             var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return "User not found";
 
-            if (user == null)
-                return "User not found";
+            string? imageUrl = null;
+            if (request.ProfileImageUrl != null)
+                imageUrl = await _localFileStorage.SaveProfileImageAsync(request.ProfileImageUrl);
 
-           
+            user.UniversityId = request.UniversityId;
             user.Major = request.Major;
             user.Bio = request.Bio;
-            user.ProfileImageUrl = request.ProfileImageUrl;
+            if (imageUrl != null) user.ProfileImageUrl = imageUrl;
+
             user.IsProfileCompleted = true;
-            user.UniversityId = request.UniversityId;
             await _userManager.UpdateAsync(user);
 
             return "Profile completed successfully";

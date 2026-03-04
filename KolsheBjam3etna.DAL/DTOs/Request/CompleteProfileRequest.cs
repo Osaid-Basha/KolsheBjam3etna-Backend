@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.AspNetCore.Http;
 
 namespace KolsheBjam3etna.DAL.DTOs.Request
 {
@@ -12,6 +13,6 @@ namespace KolsheBjam3etna.DAL.DTOs.Request
 
         public string Bio { get; set; }
 
-        public string? ProfileImageUrl { get; set; }
+        public IFormFile? ProfileImageUrl { get; set; }
     }
 }

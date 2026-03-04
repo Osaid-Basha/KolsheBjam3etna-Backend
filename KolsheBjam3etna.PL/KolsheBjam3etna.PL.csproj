@@ -23,6 +23,7 @@
   <ItemGroup>
     <Folder Include="Areas\Admin\" />
     <Folder Include="Areas\User\" />
+    <Folder Include="wwwroot\" />
   </ItemGroup>
 
 </Project>

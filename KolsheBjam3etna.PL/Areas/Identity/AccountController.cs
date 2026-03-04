@@ -70,16 +70,18 @@ namespace KolsheBjam3etna.PL.Areas.Identity
 
             return Ok(new { message = result });
         }
-        [Authorize]
-        [HttpPost("complete-profile")]
-        public async Task<IActionResult> CompleteProfile([FromBody] CompleteProfileRequest request)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var result = await _authenticationService.CompleteProfile(userId, request);
 
-            return Ok(result);
-        }
+    [Authorize]
+    [HttpPost("complete-profile")]
+    public async Task<IActionResult> CompleteProfile([FromForm] CompleteProfileRequest request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
+        var result = await _authenticationService.CompleteProfile(userId, request);
+        return Ok(new { message = result });
     }
+
+}
 }
