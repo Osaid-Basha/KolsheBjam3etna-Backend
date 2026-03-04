@@ -60,6 +60,24 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
 
             return ApiResponse<int>.Ok(entity.Id, "Request created");
         }
+        public async Task<ApiResponse<List<ServiceRequestListItemDto>>> GetAllAsync(int? categoryId, string? search)
+        {
+            var items = await _repo.GetAllAsync(categoryId, search);
+            return ApiResponse<List<ServiceRequestListItemDto>>.Ok(items, "Success");
+        }
+
+        public async Task<ApiResponse<ServiceRequestDetailsDto>> GetDetailsAsync(int id)
+        {
+            var dto = await _repo.GetDetailsAsync(id);
+            if (dto == null) return ApiResponse<ServiceRequestDetailsDto>.Fail("Not found");
+            return ApiResponse<ServiceRequestDetailsDto>.Ok(dto, "Success");
+        }
+
+        public async Task<ApiResponse<List<ServiceRequestListItemDto>>> GetMineAsync(string userId)
+        {
+            var items = await _repo.GetMineAsync(userId);
+            return ApiResponse<List<ServiceRequestListItemDto>>.Ok(items, "Success");
+        }
     }
 }
 

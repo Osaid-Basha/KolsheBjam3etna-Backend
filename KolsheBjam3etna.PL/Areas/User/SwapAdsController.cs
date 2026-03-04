@@ -35,5 +35,30 @@ namespace KolsheBjam3etna.PL.Areas.User
 
             return Ok(result);
         }
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAll([FromQuery] int? categoryId = null, [FromQuery] string? search = null)
+        {
+            var res = await _service.GetAllAsync(categoryId, search);
+            return Ok(res);
+        }
+
+        [HttpGet("{id:int}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetDetails(int id)
+        {
+            var res = await _service.GetDetailsAsync(id);
+            return res.Success ? Ok(res) : NotFound(res);
+        }
+
+        [HttpGet("mine")]
+        public async Task<IActionResult> GetMine()
+        {
+            var userId = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var res = await _service.GetMineAsync(userId);
+            return Ok(res);
+        }
     }
 }

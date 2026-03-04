@@ -9,5 +9,8 @@ namespace KolsheBjam3etna.BLL.Service.Interface
     public interface IProductAdService
     {
         Task<ApiResponse<int>> CreateAsync(string userId, CreateProductAdRequest request);
+        Task<ApiResponse<List<ProductAdListDto>>> GetAllAsync(int? categoryId, string? search);
+        Task<ApiResponse<ProductAdDetailsDto>> GetDetailsAsync(int id);
+        Task<ApiResponse<List<ProductAdListDto>>> GetMineAsync(string userId);  
     }
 }

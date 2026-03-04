@@ -13,6 +13,9 @@ namespace KolsheBjam3etna.DAL.Repository.Interface
         Task AddAsync(ProductAd ad);
 
         Task SaveAsync();
-       
+        Task<List<ProductAdListDto>> GetAllAsync(int? categoryId, string? search);
+        Task<ProductAdDetailsDto?> GetDetailsAsync(int id);
+        Task<List<ProductAdListDto>> GetMineAsync(string userId);
+
     }
 }

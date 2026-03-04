@@ -59,5 +59,23 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
 
             return new ApiResponse<int>(true, "Swap created", ad.Id);
         }
+        public async Task<ApiResponse<List<SwapAdListDto>>> GetAllAsync(int? categoryId, string? search)
+        {
+            var items = await _repo.GetAllAsync(categoryId, search);
+            return ApiResponse<List<SwapAdListDto>>.Ok(items, "Success");
+        }
+
+        public async Task<ApiResponse<SwapAdDetailsDto>> GetDetailsAsync(int id)
+        {
+            var dto = await _repo.GetDetailsAsync(id);
+            if (dto == null) return ApiResponse<SwapAdDetailsDto>.Fail("Not found");
+            return ApiResponse<SwapAdDetailsDto>.Ok(dto, "Success");
+        }
+
+        public async Task<ApiResponse<List<SwapAdListDto>>> GetMineAsync(string userId)
+        {
+            var items = await _repo.GetMineAsync(userId);
+            return ApiResponse<List<SwapAdListDto>>.Ok(items, "Success");
+        }
     }
     }

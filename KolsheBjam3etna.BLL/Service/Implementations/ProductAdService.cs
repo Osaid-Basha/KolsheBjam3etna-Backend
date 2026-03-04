@@ -58,5 +58,23 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
 
             return new ApiResponse<int>(true, "Ad created", ad.Id);
         }
+        public async Task<ApiResponse<List<ProductAdListDto>>> GetAllAsync(int? categoryId, string? search)
+        {
+            var items = await _repo.GetAllAsync(categoryId, search);
+            return ApiResponse<List<ProductAdListDto>>.Ok(items, "Success");
+        }
+
+        public async Task<ApiResponse<ProductAdDetailsDto>> GetDetailsAsync(int id)
+        {
+            var dto = await _repo.GetDetailsAsync(id);
+            if (dto == null) return ApiResponse<ProductAdDetailsDto>.Fail("Not found");
+            return ApiResponse<ProductAdDetailsDto>.Ok(dto, "Success");
+        }
+
+        public async Task<ApiResponse<List<ProductAdListDto>>> GetMineAsync(string userId)
+        {
+            var items = await _repo.GetMineAsync(userId);
+            return ApiResponse<List<ProductAdListDto>>.Ok(items, "Success");
+        }
     }
 }

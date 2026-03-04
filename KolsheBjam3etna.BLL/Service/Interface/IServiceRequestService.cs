@@ -9,6 +9,9 @@ namespace KolsheBjam3etna.BLL.Service.Interface
     public interface IServiceRequestService
     {
         Task<ApiResponse<int>> CreateAsync(string userId, CreateServiceRequestRequest request);
+        Task<ApiResponse<List<ServiceRequestListItemDto>>> GetAllAsync(int? categoryId, string? search);
+        Task<ApiResponse<ServiceRequestDetailsDto>> GetDetailsAsync(int id);
+        Task<ApiResponse<List<ServiceRequestListItemDto>>> GetMineAsync(string userId);
 
     }
 }

@@ -13,6 +13,9 @@ namespace KolsheBjam3etna.DAL.Repository.Interface
         Task AddAsync(SwapAd ad);
 
         Task SaveAsync();
-       
+        Task<List<SwapAdListDto>> GetAllAsync(int? categoryId, string? search);
+        Task<SwapAdDetailsDto?> GetDetailsAsync(int id);
+        Task<List<SwapAdListDto>> GetMineAsync(string userId);
+
     }
 }
