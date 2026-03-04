@@ -95,5 +95,26 @@ namespace KolsheBjam3etna.BLL.Service.Class
 
             return $"/uploads/requests/{name}";
         }
+        public async Task<string?> SaveEventCoverAsync(IFormFile file)
+        {
+            if (file == null || file.Length == 0) return null;
+
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            var allowedExt = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            if (!allowedExt.Contains(ext))
+                throw new Exception("Invalid image type");
+
+            var wwwroot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var folder = Path.Combine(wwwroot, "uploads", "events");
+            Directory.CreateDirectory(folder);
+
+            var name = $"{Guid.NewGuid()}{ext}";
+            var path = Path.Combine(folder, name);
+
+            using var stream = new FileStream(path, FileMode.Create);
+            await file.CopyToAsync(stream);
+
+            return $"/uploads/events/{name}";
+        }
     }
 }

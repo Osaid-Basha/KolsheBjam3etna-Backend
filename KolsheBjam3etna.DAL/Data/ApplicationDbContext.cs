@@ -24,6 +24,8 @@ namespace KolsheBjam3etna.DAL.Data
         public DbSet<ProductAdImage> ProductAdImages => Set<ProductAdImage>();
         public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
         public DbSet<SwapAd> SwapAds => Set<SwapAd>();
+        public DbSet<Event> Events { get; set; }
+        public DbSet<EventRegistration> EventRegistrations { get; set; }
 
         public DbSet<SwapAdImage> SwapAdImages => Set<SwapAdImage>();
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
@@ -62,6 +64,18 @@ namespace KolsheBjam3etna.DAL.Data
                 .WithMany(c => c.Messages)
                 .HasForeignKey(m => m.ConversationId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<EventRegistration>()
+        .HasOne(er => er.User)
+        .WithMany()
+        .HasForeignKey(er => er.UserId)
+        .OnDelete(DeleteBehavior.NoAction); 
+
+            builder.Entity<Event>()
+                .HasOne(e => e.Coordinator)
+                .WithMany()
+                .HasForeignKey(e => e.CoordinatorId)
+                .OnDelete(DeleteBehavior.NoAction);
 
 
         }

@@ -79,6 +79,10 @@ namespace KolsheBjam3etna.PL
             builder.Services.AddScoped<IProductAdRepository, ProductAdRepository>();   
             builder.Services.AddScoped<ISwapAdService, SwapAdService>();
             builder.Services.AddScoped<ISwapAdRepository, SwapAdRepository>();
+            builder.Services.AddScoped<IEventRepository, EventRepository>();
+            builder.Services.AddScoped<IEventService, EventService>();
+            builder.Services.AddScoped<IEventPublicRepository, EventPublicRepository>();
+            builder.Services.AddScoped<IEventPublicService, EventPublicService>();
 
             var app = builder.Build();
             if (app.Environment.IsDevelopment())
