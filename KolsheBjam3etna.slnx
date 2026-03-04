@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="KolsheBjam3etna.BLL/KolsheBjam3etna.BLL.csproj" />
+  <Project Path="KolsheBjam3etna.DAL/KolsheBjam3etna.DAL.csproj" />
+  <Project Path="KolsheBjam3etna.PL/KolsheBjam3etna.PL.csproj" />
+</Solution>

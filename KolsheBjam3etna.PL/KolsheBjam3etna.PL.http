@@ -1,0 +1,6 @@
+@KolsheBjam3etna.PL_HostAddress = http://localhost:5098
+
+GET {{KolsheBjam3etna.PL_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

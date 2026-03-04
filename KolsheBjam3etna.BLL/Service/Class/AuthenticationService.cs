@@ -1,0 +1,307 @@
+﻿using KolsheBjam3etna.BLL.Service.Interface;
+using KolsheBjam3etna.DAL.Data;
+using KolsheBjam3etna.DAL.DTOs.Request;
+using KolsheBjam3etna.DAL.DTOs.Response;
+using KolsheBjam3etna.DAL.Models;
+using Mapster;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.EntityFrameworkCore;
+
+namespace KolsheBjam3etna.BLL.Service.Class
+{
+    public class AuthenticationService : IAuthenticationService
+    {
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IConfiguration _config;
+        private readonly ApplicationDbContext _dbContext;
+        private readonly EmailService _emailService;
+
+        public AuthenticationService(UserManager<ApplicationUser> userManager, IConfiguration config, ApplicationDbContext dbContext, EmailService emailService)
+        {
+            _userManager = userManager;
+            _config = config;
+            _dbContext = dbContext;
+            _emailService = emailService;
+        }
+
+        public async Task<LoginResponse> Login(LoginRequest request)
+        {
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(request.Email);
+                if (user == null)
+                {
+                    return new LoginResponse { Message = "Invalid email or password" };
+                }
+
+                var passwordOk = await _userManager.CheckPasswordAsync(user, request.Password);
+                if (!passwordOk)
+                {
+                    return new LoginResponse { Message = "Invalid email or password" };
+                }
+
+                var roles = (await _userManager.GetRolesAsync(user)).ToList();
+                var token = CreateJwtToken(user, roles);
+
+                return new LoginResponse
+                {
+                    Message = "Login successful",
+                    Token = token,
+                    IsProfileCompleted = user.IsProfileCompleted
+                };
+            }
+            catch (Exception ex)
+            {
+                return new LoginResponse { Message = "An error occurred: " + ex.Message };
+            }
+        }
+
+        public async Task<RegisterResponse> Register(RegisterRequest request)
+        {
+            try
+            {
+                var user = request.Adapt<ApplicationUser>();
+
+          
+                if (string.IsNullOrWhiteSpace(user.UserName))
+                {
+                    
+                    user.UserName = request.Email;
+                }
+
+                var result = await _userManager.CreateAsync(user, request.Password);
+                if (!result.Succeeded)
+                {
+                    return new RegisterResponse
+                    {
+                        Message = "User creation failed: " + string.Join(", ", result.Errors.Select(e => e.Description))
+                    };
+                }
+
+                await _userManager.AddToRoleAsync(user, "User");
+
+                return new RegisterResponse { Message = "User created successfully" };
+            }
+            catch (Exception ex)
+            {
+                return new RegisterResponse { Message = "An error occurred: " + ex.Message };
+            }
+        }
+
+        private string CreateJwtToken(ApplicationUser user, List<string> roles)
+        {
+            var jwt = _config.GetSection("Jwt");
+
+            var keyBytes = Encoding.UTF8.GetBytes(jwt["Key"]!);
+            var key = new SymmetricSecurityKey(keyBytes);
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Email, user.Email ?? ""),
+                new Claim(ClaimTypes.Name, user.UserName ?? user.Email ?? "")
+            };
+
+            foreach (var role in roles)
+                claims.Add(new Claim(ClaimTypes.Role, role));
+
+            var token = new JwtSecurityToken(
+                issuer: jwt["Issuer"],
+                audience: jwt["Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(double.Parse(jwt["DurationInMinutes"]!)),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+        private static string HashCode(string code)
+        {
+            using var sha = SHA256.Create();
+            var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(code));
+            return Convert.ToHexString(bytes);
+        }
+
+        private static string Generate6DigitCode()
+        {
+            // 100000 - 999999
+            return RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+        }
+        public async Task<string> ForgotPassword(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) return "If the email exists, a code was sent."; 
+
+            var code = Generate6DigitCode();
+
+           
+            var old = _dbContext.PasswordResetCodes.Where(x => x.UserId == user.Id && !x.Used);
+            _dbContext.PasswordResetCodes.RemoveRange(old);
+
+            _dbContext.PasswordResetCodes.Add(new PasswordResetCode
+            {
+                UserId = user.Id,
+                CodeHash = HashCode(code),
+                ExpiresAtUtc = DateTime.UtcNow.AddMinutes(2),
+                Used = false
+            });
+
+            await _dbContext.SaveChangesAsync();
+            var body = $@"
+<html>
+<head>
+<style>
+body {{
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f9;
+    padding: 30px;
+}}
+
+.container {{
+    max-width: 500px;
+    margin: auto;
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}}
+
+.logo {{
+    font-size: 22px;
+    font-weight: bold;
+    color: #2563eb;
+    margin-bottom: 20px;
+}}
+
+.code {{
+    font-size: 36px;
+    font-weight: bold;
+    letter-spacing: 8px;
+    background: #f1f5f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 20px 0;
+}}
+
+.footer {{
+    color: #6b7280;
+    font-size: 12px;
+    margin-top: 20px;
+}}
+</style>
+</head>
+
+<body>
+
+<div class='container'>
+
+<div class='logo'>
+🎓 KolsheBjam3etna
+</div>
+
+<h2>Password Reset</h2>
+
+<p>You requested to reset your password.</p>
+
+<p>Your verification code is:</p>
+
+<div class='code'>
+{code}
+</div>
+
+<p>This code will expire in <b>2 minutes</b>.</p>
+
+<div class='footer'>
+If you didn't request this, you can safely ignore this email.
+</div>
+
+</div>
+
+</body>
+</html>
+";
+            // TODO: Email Sender
+            await _emailService.SendAsync(
+     email,
+     "Password Reset Code",
+     body
+ );
+
+            return "If the email exists, a code was sent.";
+        }
+        public async Task<bool> VerifyResetCode(string email, string code)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) return false;
+
+            var hash = HashCode(code);
+
+            var rec = await _dbContext.PasswordResetCodes
+                .OrderByDescending(x => x.CreatedAtUtc)
+                .FirstOrDefaultAsync(x =>
+                    x.UserId == user.Id &&
+                    !x.Used &&
+                    x.CodeHash == hash);
+
+            if (rec == null) return false;
+            if (rec.ExpiresAtUtc < DateTime.UtcNow) return false;
+
+            return true;
+        }
+        public async Task<string> ResetPassword(string email, string code, string newPassword)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) return "Invalid code or email.";
+
+            var hash = HashCode(code);
+
+            var rec = await _dbContext.PasswordResetCodes
+                .OrderByDescending(x => x.CreatedAtUtc)
+                .FirstOrDefaultAsync(x =>
+                    x.UserId == user.Id &&
+                    !x.Used &&
+                    x.CodeHash == hash);
+
+            if (rec == null || rec.ExpiresAtUtc < DateTime.UtcNow)
+                return "Invalid or expired code.";
+
+            // Identity Reset:
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
+
+            if (!result.Succeeded)
+                return "Reset failed: " + string.Join(", ", result.Errors.Select(e => e.Description));
+
+            rec.Used = true;
+            await _dbContext.SaveChangesAsync();
+
+            return "Password reset successful.";
+        }
+        public async Task<string> CompleteProfile(string userId, CompleteProfileRequest request)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+                return "User not found";
+
+           
+            user.Major = request.Major;
+            user.Bio = request.Bio;
+            user.ProfileImageUrl = request.ProfileImageUrl;
+            user.IsProfileCompleted = true;
+            user.UniversityId = request.UniversityId;
+            await _userManager.UpdateAsync(user);
+
+            return "Profile completed successfully";
+        }
+    }
+
+}
