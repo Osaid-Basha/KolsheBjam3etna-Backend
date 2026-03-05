@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 
 namespace KolsheBjam3etna.DAL.Repository.Implementations
 {
@@ -106,17 +107,21 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
         {
             var ev = await _db.Events
                 .Include(e => e.Registrations)
+                .Include(e => e.Agenda) // ✅
                 .FirstOrDefaultAsync(e => e.Id == eventId && e.CoordinatorId == coordinatorId);
 
             if (ev == null) return false;
 
-            _db.Events.Remove(ev); 
+            _db.Events.Remove(ev);
             await _db.SaveChangesAsync();
             return true;
         }
         public async Task<bool> UpdateAsync(int eventId, string coordinatorId, UpdateEventRequest req, string? newCoverUrl)
         {
-            var ev = await _db.Events.FirstOrDefaultAsync(e => e.Id == eventId && e.CoordinatorId == coordinatorId);
+            var ev = await _db.Events
+                .Include(e => e.Agenda)   // ✅ مهم
+                .FirstOrDefaultAsync(e => e.Id == eventId && e.CoordinatorId == coordinatorId);
+
             if (ev == null) return false;
 
             ev.Title = req.Title.Trim();
@@ -125,12 +130,55 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
             ev.DateTimeUtc = req.DateTimeUtc;
             ev.Capacity = req.Capacity;
             ev.Description = req.Description.Trim();
+            ev.Content = string.IsNullOrWhiteSpace(req.Content) ? null : req.Content.Trim();
 
             if (!string.IsNullOrEmpty(newCoverUrl))
                 ev.CoverImageUrl = newCoverUrl;
 
+            // ✅ Replace agenda إذا وصلت من الفرونت
+            if (req.AgendaJson != null)
+            {
+                List<AgendaItemRequest> agenda = new();
+
+                if (!string.IsNullOrWhiteSpace(req.AgendaJson))
+                {
+                    try
+                    {
+                        agenda = JsonSerializer.Deserialize<List<AgendaItemRequest>>(req.AgendaJson) ?? new();
+                    }
+                    catch
+                    {
+                        // إذا JSON غلط: نرفض التعديل
+                        return false;
+                    }
+                }
+
+                // delete old
+                _db.EventAgendaItems.RemoveRange(ev.Agenda);
+                ev.Agenda.Clear();
+
+                // add new
+                foreach (var item in agenda.OrderBy(x => x.Order))
+                {
+                    if (string.IsNullOrWhiteSpace(item.Title)) continue;
+
+                    TimeSpan? st = null;
+                    if (!string.IsNullOrWhiteSpace(item.StartTime) && TimeSpan.TryParse(item.StartTime, out var ts))
+                        st = ts;
+
+                    ev.Agenda.Add(new EventAgendaItem
+                    {
+                        Title = item.Title.Trim(),
+                        StartTime = st,
+                        Order = item.Order,
+                        IsVisible = item.IsVisible
+                    });
+                }
+            }
+
             await _db.SaveChangesAsync();
             return true;
         }
+
     }
 }

@@ -45,9 +45,10 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
 
         public async Task<EventDetailsDto?> GetDetailsAsync(int eventId)
         {
-            return await _db.Events.AsNoTracking()
+            return await _db.Events
+                .AsNoTracking()
+                .Include(e => e.Agenda)
                 .Include(e => e.Registrations)
-                .Include(e => e.Coordinator)
                 .Where(e => e.Id == eventId)
                 .Select(e => new EventDetailsDto
                 {
@@ -59,11 +60,21 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
                     Capacity = e.Capacity,
                     RegisteredCount = e.Registrations.Count,
                     Description = e.Description,
+                    Content = e.Content,
                     CoverImageUrl = e.CoverImageUrl,
 
-                    CoordinatorId = e.CoordinatorId,
-                    CoordinatorName = e.Coordinator.FullName,
-                    CoordinatorProfileImageUrl = e.Coordinator.ProfileImageUrl
+                    Agenda = e.Agenda
+                        .OrderBy(a => a.Order)
+                        .Select(a => new EventAgendaItemDto
+                        {
+                            Id = a.Id,
+                            Title = a.Title,
+                            StartTime = a.StartTime.HasValue
+                                ? a.StartTime.Value.ToString(@"hh\:mm")
+                                : null,
+                            Order = a.Order,
+                            IsVisible = a.IsVisible
+                        }).ToList()
                 })
                 .FirstOrDefaultAsync();
         }
@@ -92,5 +103,14 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
             await _db.SaveChangesAsync();
             return reg.Id;
         }
+        public async Task<(string Title, string CoordinatorId)?> GetEventBasicAsync(int eventId)
+        {
+            return await _db.Events.AsNoTracking()
+                .Where(e => e.Id == eventId)
+                .Select(e => new ValueTuple<string, string>(e.Title, e.CoordinatorId))
+                .FirstOrDefaultAsync();
+        }
+
+
     }
 }

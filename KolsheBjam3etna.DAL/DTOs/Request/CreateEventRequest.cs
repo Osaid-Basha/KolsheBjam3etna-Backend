@@ -5,6 +5,8 @@ using System.Text;
 
 namespace KolsheBjam3etna.DAL.DTOs.Request
 {
+    
+
     public class CreateEventRequest
     {
         public IFormFile? CoverImage { get; set; }
@@ -17,5 +19,9 @@ namespace KolsheBjam3etna.DAL.DTOs.Request
         public int Capacity { get; set; }
 
         public string Description { get; set; } = "";
+        public string? Content { get; set; }
+
+    
+        public string? AgendaJson { get; set; }
     }
 }

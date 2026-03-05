@@ -18,18 +18,21 @@ namespace KolsheBjam3etna.BLL.Service.Class
         private readonly UserManager<ApplicationUser> _userManager;
 
         private readonly ILocalFileStorageService _localFileStorage;
+        private readonly INotificationService _notificationService;
 
         public ChatService(
             IConversationRepository convRepo,
             IMessageRepository msgRepo,
             UserManager<ApplicationUser> userManager,
-            ILocalFileStorageService localFileStorage
+            ILocalFileStorageService localFileStorage,
+              INotificationService notificationService
         )
         {
             _convRepo = convRepo;
             _msgRepo = msgRepo;
             _userManager = userManager;
             _localFileStorage = localFileStorage;
+            _notificationService = notificationService;
         }
 
         public async Task<int> CreateOrGetDmAsync(string myUserId, string otherUserId)
@@ -132,7 +135,20 @@ namespace KolsheBjam3etna.BLL.Service.Class
             conv.LastMessageText = saved.Text;
             conv.LastMessageAtUtc = saved.SentAtUtc;
             await _convRepo.SaveChangesAsync();
+            var receiverId = conv.User1Id == myUserId ? conv.User2Id : conv.User1Id;
 
+          
+            var me = await _userManager.FindByIdAsync(myUserId);
+            var senderName = me?.FullName ?? "مستخدم";
+
+            await _notificationService.CreateAsync(
+                receiverId,
+                "رسالة جديدة",
+                $"رسالة جديدة من {senderName}",
+                "Message",
+                targetType: "Chat",
+                targetId: conv.Id
+            );
             return new MessageResponse
             {
                 Id = saved.Id,
@@ -167,6 +183,12 @@ namespace KolsheBjam3etna.BLL.Service.Class
         }
         public async Task<Message> SendImageAsync(string senderId, int conversationId, IFormFile image, string? caption)
         {
+            var conv = await _convRepo.GetByIdAsync(conversationId);
+            if (conv == null) throw new Exception("Conversation not found.");
+
+            if (conv.User1Id != senderId && conv.User2Id != senderId)
+                throw new Exception("Forbidden.");
+
             var imageUrl = await _localFileStorage.SaveChatImageAsync(image);
             if (imageUrl == null) throw new Exception("Upload failed");
 
@@ -176,11 +198,32 @@ namespace KolsheBjam3etna.BLL.Service.Class
                 SenderId = senderId,
                 Type = MessageType.Image,
                 ImageUrl = imageUrl,
-                Text = caption
+                Text = caption,
+                SentAtUtc = DateTime.UtcNow,
+                IsRead = false
             };
 
-            await _msgRepo.AddAsync(msg);  
+            await _msgRepo.AddAsync(msg);
             await _msgRepo.SaveChangesAsync();
+
+            // update last message
+            conv.LastMessageText = "[Image]";
+            conv.LastMessageAtUtc = msg.SentAtUtc;
+            await _convRepo.SaveChangesAsync();
+
+            // notification
+            var receiverId = conv.User1Id == senderId ? conv.User2Id : conv.User1Id;
+            var me = await _userManager.FindByIdAsync(senderId);
+            var senderName = me?.FullName ?? "مستخدم";
+
+            await _notificationService.CreateAsync(
+                receiverId,
+                "صورة جديدة",
+                $"صورة جديدة من {senderName}",
+                "Message",
+                targetType: "Chat",
+                targetId: conversationId
+            );
 
             return msg;
         }

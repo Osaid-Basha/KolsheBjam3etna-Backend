@@ -16,5 +16,6 @@ namespace KolsheBjam3etna.DAL.Repository.Interface
         Task<bool> IsUserRegisteredAsync(int eventId, string userId);
 
         Task<int> RegisterAsync(int eventId, string userId, RegisterEventRequest req);
+        Task<(string Title, string CoordinatorId)?> GetEventBasicAsync(int eventId);
     }
 }

@@ -28,6 +28,9 @@ namespace KolsheBjam3etna.DAL.Data
         public DbSet<EventRegistration> EventRegistrations { get; set; }
 
         public DbSet<SwapAdImage> SwapAdImages => Set<SwapAdImage>();
+        public DbSet<EventAgendaItem> EventAgendaItems { get; set; }
+        public DbSet<Offer> Offers { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
 
@@ -76,8 +79,28 @@ namespace KolsheBjam3etna.DAL.Data
                 .WithMany()
                 .HasForeignKey(e => e.CoordinatorId)
                 .OnDelete(DeleteBehavior.NoAction);
+            builder.Entity<EventAgendaItem>()
+    .HasOne(x => x.Event)
+    .WithMany(e => e.Agenda)
+    .HasForeignKey(x => x.EventId)
+    .OnDelete(DeleteBehavior.Cascade);
 
+            builder.Entity<Offer>()
+    .HasOne(o => o.Sender)
+    .WithMany()
+    .HasForeignKey(o => o.SenderId)
+    .OnDelete(DeleteBehavior.NoAction);
 
+            builder.Entity<Offer>()
+                .HasOne(o => o.Receiver)
+                .WithMany()
+                .HasForeignKey(o => o.ReceiverId)
+                .OnDelete(DeleteBehavior.NoAction);
+            builder.Entity<Notification>()
+    .HasOne(n => n.User)
+    .WithMany()
+    .HasForeignKey(n => n.UserId)
+    .OnDelete(DeleteBehavior.NoAction);
         }
     }
     }

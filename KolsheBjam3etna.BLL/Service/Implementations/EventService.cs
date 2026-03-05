@@ -7,6 +7,8 @@ using KolsheBjam3etna.DAL.Repository.Interface;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
+using System.Linq;
 
 namespace KolsheBjam3etna.BLL.Service.Implementations
 {
@@ -14,11 +16,13 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
     {
         private readonly IEventRepository _repo;
         private readonly ILocalFileStorageService _storage;
+        private readonly INotificationService _notificationService; 
 
-        public EventService(IEventRepository repo, ILocalFileStorageService storage)
+        public EventService(IEventRepository repo, ILocalFileStorageService storage, INotificationService notificationService)
         {
             _repo = repo;
             _storage = storage;
+            _notificationService = notificationService;
         }
 
         public async Task<ApiResponse<int>> CreateAsync(string coordinatorId, CreateEventRequest req)
@@ -45,12 +49,25 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
             if (req.Description.Length > 500)
                 return ApiResponse<int>.Fail("Description max 500 chars");
 
-            
+            List<AgendaItemRequest> agenda = new();
+
+            if (!string.IsNullOrWhiteSpace(req.AgendaJson))
+            {
+                try
+                {
+                    agenda = JsonSerializer.Deserialize<List<AgendaItemRequest>>(req.AgendaJson) ?? new();
+                }
+                catch
+                {
+                    return ApiResponse<int>.Fail("Invalid AgendaJson");
+                }
+            }
+
             string? coverUrl = null;
             if (req.CoverImage != null)
                 coverUrl = await _storage.SaveEventCoverAsync(req.CoverImage);
 
-           
+
             var e = new Event
             {
                 CoordinatorId = coordinatorId,
@@ -60,8 +77,25 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
                 DateTimeUtc = req.DateTimeUtc,
                 Capacity = req.Capacity,
                 Description = req.Description.Trim(),
+                Content = string.IsNullOrWhiteSpace(req.Content) ? null : req.Content.Trim(),
                 CoverImageUrl = coverUrl
             };
+            foreach (var item in agenda.OrderBy(x => x.Order))
+            {
+                if (string.IsNullOrWhiteSpace(item.Title)) continue;
+
+                TimeSpan? st = null;
+                if (!string.IsNullOrWhiteSpace(item.StartTime) && TimeSpan.TryParse(item.StartTime, out var ts))
+                    st = ts;
+
+                e.Agenda.Add(new EventAgendaItem
+                {
+                    Title = item.Title.Trim(),
+                    StartTime = st,
+                    Order = item.Order,
+                    IsVisible = item.IsVisible
+                });
+            }
 
             await _repo.AddAsync(e);
             await _repo.SaveAsync();
@@ -87,6 +121,7 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
            
             if (items.Count == 0)
                 return ApiResponse<List<EventRegistrantDto>>.Ok(items, "No registrations or not found");
+       
 
             return ApiResponse<List<EventRegistrantDto>>.Ok(items, "Success");
         }
