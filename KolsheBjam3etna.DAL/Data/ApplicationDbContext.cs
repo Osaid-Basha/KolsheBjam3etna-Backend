@@ -31,6 +31,8 @@ namespace KolsheBjam3etna.DAL.Data
         public DbSet<EventAgendaItem> EventAgendaItems { get; set; }
         public DbSet<Offer> Offers { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<News> News { get; set; }
+        public DbSet<PartnerOffer> PartnerOffers { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
 

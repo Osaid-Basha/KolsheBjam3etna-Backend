@@ -89,7 +89,10 @@ namespace KolsheBjam3etna.PL
             builder.Services.AddScoped<IOfferService, OfferService>();
             builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
-
+            builder.Services.AddScoped<INewsRepository, NewsRepository>();
+            builder.Services.AddScoped<INewsService, NewsService>();
+            builder.Services.AddScoped<IPartnerOfferRepository, PartnerOfferRepository>();
+            builder.Services.AddScoped<IPartnerOfferService, PartnerOfferService>();
             var app = builder.Build();
             if (app.Environment.IsDevelopment())
             {

@@ -116,5 +116,45 @@ namespace KolsheBjam3etna.BLL.Service.Class
 
             return $"/uploads/events/{name}";
         }
+
+        public Task<string?> SaveNewsImageAsync(IFormFile file)
+        {
+
+            if (file == null || file.Length == 0) return null;
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            if (!allowed.Contains(ext)) throw new Exception("Invalid image type");
+            if (file.Length > 5 * 1024 * 1024) throw new Exception("Image too large");
+            var wwwroot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var folder = Path.Combine(wwwroot, "uploads", "news");
+            Directory.CreateDirectory(folder);
+            var name = $"{Guid.NewGuid()}{ext}";
+            var fullPath = Path.Combine(folder, name);
+            using var stream = new FileStream(fullPath, FileMode.Create);
+            file.CopyTo(stream);
+            return Task.FromResult<string?>($"/uploads/news/{name}");
+
+        }
+        public async Task<string?> SavePartnerOfferImageAsync(IFormFile file)
+        {
+            if (file == null || file.Length == 0) return null;
+
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            if (!allowed.Contains(ext))
+                throw new Exception("Invalid image type");
+
+            var wwwroot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var folder = Path.Combine(wwwroot, "uploads", "partner-offers");
+            Directory.CreateDirectory(folder);
+
+            var name = $"{Guid.NewGuid()}{ext}";
+            var path = Path.Combine(folder, name);
+
+            using var stream = new FileStream(path, FileMode.Create);
+            await file.CopyToAsync(stream);
+
+            return $"/uploads/partner-offers/{name}";
+        }
     }
 }
