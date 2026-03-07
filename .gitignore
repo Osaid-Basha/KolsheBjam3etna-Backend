@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/KolsheBjam3etna.PL/appsettings.json
+/KolsheBjam3etna.PL/Data
