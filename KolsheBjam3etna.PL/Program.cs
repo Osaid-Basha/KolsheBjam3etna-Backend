@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using System.Text;
+
 namespace KolsheBjam3etna.PL
 {
     public class Program
@@ -22,13 +23,26 @@ namespace KolsheBjam3etna.PL
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            
-
             builder.Services.AddControllers();
-          
             builder.Services.AddOpenApi();
 
-            builder.Services.AddDbContext< ApplicationDbContext>(options =>
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy
+                        .WithOrigins(
+                            "http://localhost:3000",
+                            "http://localhost:5173",
+                             "http://localhost:8081"
+                        )
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                });
+            });
+
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
@@ -36,6 +50,7 @@ namespace KolsheBjam3etna.PL
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
+
             var jwtSettings = builder.Configuration.GetSection("Jwt");
 
             builder.Services.AddAuthentication(options =>
@@ -58,6 +73,7 @@ namespace KolsheBjam3etna.PL
                     )
                 };
             });
+
             builder.Services.AddScoped<ISeedData, RoleSeedData>();
             builder.Services.AddScoped<ISeedData, UserSeedData>();
             builder.Services.AddScoped<EmailService>();
@@ -68,17 +84,13 @@ namespace KolsheBjam3etna.PL
             builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
             builder.Services.AddScoped<IMessageRepository, MessageRepository>();
             builder.Services.AddSignalR();
-            builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
-            builder.Services.AddScoped<IMessageRepository, MessageRepository>();
             builder.Services.AddScoped<IChatService, ChatService>();
-            builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
-            builder.Services.AddScoped<ILocalFileStorageService, LocalFileStorageService>();
             builder.Services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
             builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
+            builder.Services.AddScoped<IProductAdRepository, ProductAdRepository>();
             builder.Services.AddScoped<IProductAdService, ProductAdService>();
-            builder.Services.AddScoped<IProductAdRepository, ProductAdRepository>();   
-            builder.Services.AddScoped<ISwapAdService, SwapAdService>();
             builder.Services.AddScoped<ISwapAdRepository, SwapAdRepository>();
+            builder.Services.AddScoped<ISwapAdService, SwapAdService>();
             builder.Services.AddScoped<IEventRepository, EventRepository>();
             builder.Services.AddScoped<IEventService, EventService>();
             builder.Services.AddScoped<IEventPublicRepository, EventPublicRepository>();
@@ -95,21 +107,27 @@ namespace KolsheBjam3etna.PL
             builder.Services.AddScoped<IPartnerOfferService, PartnerOfferService>();
             builder.Services.AddHttpClient();
             builder.Services.AddHttpClient<IAIService, AIService>();
+
             var app = builder.Build();
+
             if (app.Environment.IsDevelopment())
             {
-                app.MapOpenApi();                 
-                app.MapScalarApiReference();      
+                app.MapOpenApi();
+                app.MapScalarApiReference();
             }
-            app.MapHub<ChatHub>("/hubs/chat");
+
+            app.UseHttpsRedirection();
             app.UseStaticFiles();
+
+            app.UseCors("AllowFrontend");
+
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseHttpsRedirection();
 
-            app.UseAuthorization();
+            app.MapHub<ChatHub>("/hubs/chat");
+            app.MapControllers();
 
-            using(var scope = app.Services.CreateScope())
+            using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
                 var seedData = services.GetService<IEnumerable<ISeedData>>();
@@ -118,8 +136,6 @@ namespace KolsheBjam3etna.PL
                     await seed.Seed();
                 }
             }
-
-            app.MapControllers();
 
             app.Run();
         }
