@@ -14,13 +14,13 @@ namespace KolsheBjam3etna.PL.Areas.Identity
         private readonly IAuthenticationService _authenticationService;
         private readonly IUpdateProfileService _updateProfile;
 
-        public AccountController(IAuthenticationService authenticationService,IUpdateProfileService updateProfile)
+        public AccountController(IAuthenticationService authenticationService, IUpdateProfileService updateProfile)
         {
             _authenticationService = authenticationService;
             _updateProfile = updateProfile;
         }
 
-       
+
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
@@ -32,7 +32,7 @@ namespace KolsheBjam3etna.PL.Areas.Identity
             return Ok(response);
         }
 
-        
+
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
@@ -75,6 +75,12 @@ namespace KolsheBjam3etna.PL.Areas.Identity
                 return Unauthorized(new ApiResponse<object>(false, "Unauthorized"));
 
             var response = await _authenticationService.CompleteProfile(userId, request);
+            return response.Success ? Ok(response) : BadRequest(response);
+        }
+        [HttpGet("universities")]
+        public async Task<IActionResult> GetUniversities()
+        {
+            var response = await _authenticationService.GetUniversities();
             return response.Success ? Ok(response) : BadRequest(response);
         }
 
@@ -140,5 +146,7 @@ namespace KolsheBjam3etna.PL.Areas.Identity
             var response = await _updateProfile.GetProfile(userId);
             return response.Success ? Ok(response) : BadRequest(response);
         }
+    
+     
     }
 }

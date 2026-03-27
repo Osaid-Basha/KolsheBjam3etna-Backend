@@ -15,5 +15,6 @@ namespace KolsheBjam3etna.BLL.Service.Interface
         Task<ApiResponse<ProfileResponse>> GetProfile(string userId);
 
         Task<ApiResponse<UploadProfilePhotoResponse>> UploadProfilePhoto(string userId, IFormFile file);
+
     }
 }

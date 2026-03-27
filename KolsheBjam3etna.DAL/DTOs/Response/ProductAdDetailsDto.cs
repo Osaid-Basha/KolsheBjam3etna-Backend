@@ -10,7 +10,7 @@ namespace KolsheBjam3etna.DAL.DTOs.Response
         public string Title { get; set; } = "";
         public decimal Price { get; set; }
         public string Condition { get; set; } = "";
-        public string Description { get; set; } = "";
+       public string Description { get; set; } = "";
 
         public int CategoryId { get; set; }
         public string CategoryName { get; set; } = "";

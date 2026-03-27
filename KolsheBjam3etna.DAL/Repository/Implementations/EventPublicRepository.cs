@@ -38,7 +38,9 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
                     DateTimeUtc = e.DateTimeUtc,
                     Capacity = e.Capacity,
                     RegisteredCount = e.Registrations.Count,
-                    CoverImageUrl = e.CoverImageUrl
+                    CoverImageUrl = e.CoverImageUrl,
+                    Description = e.Description,
+                        ClubName = e.ClubName
                 })
                 .ToListAsync();
         }

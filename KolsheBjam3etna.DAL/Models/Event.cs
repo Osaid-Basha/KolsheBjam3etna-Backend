@@ -10,7 +10,7 @@ namespace KolsheBjam3etna.DAL.Models
 
         public string CoordinatorId { get; set; } = default!;
         public ApplicationUser Coordinator { get; set; } = default!;
-
+        public string ClubName { get; set; } = ""; 
         public string Title { get; set; } = "";
         public string Type { get; set; } = "";
         public string Location { get; set; } = "";

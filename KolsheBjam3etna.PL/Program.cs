@@ -34,7 +34,8 @@ namespace KolsheBjam3etna.PL
                         .WithOrigins(
                             "http://localhost:3000",
                             "http://localhost:5173",
-                             "http://localhost:8081"
+                             "http://localhost:8081",
+                              "http://localhost:8082"
                         )
                         .AllowAnyHeader()
                         .AllowAnyMethod()

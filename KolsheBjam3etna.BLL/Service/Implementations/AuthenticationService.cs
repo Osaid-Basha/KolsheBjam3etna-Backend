@@ -263,6 +263,15 @@ namespace KolsheBjam3etna.BLL.Service.Class
                 response
             );
         }
+
+        public Task<ApiResponse<object>> GetUniversities()
+        {
+            var universities = _dbContext.Universities
+                .Select(u => new { u.Id, u.Name })
+                .ToList();
+            return Task.FromResult(new ApiResponse<object>(true, "Universities retrieved successfully", universities));
+
+        }
     }
 
 }

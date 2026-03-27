@@ -15,5 +15,7 @@ namespace KolsheBjam3etna.BLL.Service.Interface
         Task<ApiResponse<object>> ResetPassword(string email, string code, string newPassword);
 
         Task<ApiResponse<ProfileResponse>> CompleteProfile(string userId, CompleteProfileRequest request);
+        
+        Task<ApiResponse<object>> GetUniversities();
     }
 }

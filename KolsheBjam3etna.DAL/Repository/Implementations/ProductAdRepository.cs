@@ -58,7 +58,7 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
 
                     CategoryId = x.CategoryId,
                     CategoryName = x.Category.Name,
-
+                    Description = x.Description,
                     UserId = x.UserId,
                     User = new UserMiniDto
                     {
@@ -131,6 +131,7 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
                     Condition = x.Condition.ToString(),
                     CategoryId = x.CategoryId,
                     CategoryName = x.Category.Name,
+                    Description = x.Description,
 
                     UserId = x.UserId,
                     User = new UserMiniDto

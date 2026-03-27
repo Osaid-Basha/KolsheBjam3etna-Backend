@@ -20,8 +20,8 @@ namespace KolsheBjam3etna.DAL.DTOs.Request
 
         public string Description { get; set; } = "";
         public string? Content { get; set; }
+        public string ClubName { get; set; } = "";
 
-    
         public string? AgendaJson { get; set; }
     }
 }

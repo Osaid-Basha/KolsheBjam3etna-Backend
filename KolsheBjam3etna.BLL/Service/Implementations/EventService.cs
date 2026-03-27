@@ -78,7 +78,8 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
                 Capacity = req.Capacity,
                 Description = req.Description.Trim(),
                 Content = string.IsNullOrWhiteSpace(req.Content) ? null : req.Content.Trim(),
-                CoverImageUrl = coverUrl
+                CoverImageUrl = coverUrl,
+                ClubName = req.ClubName,
             };
             foreach (var item in agenda.OrderBy(x => x.Order))
             {

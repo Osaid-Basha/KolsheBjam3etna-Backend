@@ -13,11 +13,11 @@ namespace KolsheBjam3etna.DAL.DTOs.Response
 
         public int CategoryId { get; set; }
         public string CategoryName { get; set; } = "";
-
+        public string Description { get; set; } = "";
         public string UserId { get; set; } = "";
         public UserMiniDto User { get; set; } = new();
 
-        public string? CoverImageUrl { get; set; } // أول صورة
+        public string? CoverImageUrl { get; set; } 
         public DateTime CreatedAtUtc { get; set; }
     }
 }
