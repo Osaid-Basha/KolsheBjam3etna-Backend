@@ -111,44 +111,61 @@ namespace KolsheBjam3etna.BLL.Service.Class
 
         public async Task<MessageResponse> SendMessageAsync(string myUserId, SendMessageRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.Text))
-                throw new Exception("Message text is required.");
-
             var conv = await _convRepo.GetByIdAsync(request.ConversationId);
             if (conv == null) throw new Exception("Conversation not found.");
 
             if (conv.User1Id != myUserId && conv.User2Id != myUserId)
                 throw new Exception("Forbidden.");
 
+            if (string.IsNullOrWhiteSpace(request.Text) && request.Image == null)
+                throw new Exception("Message must have text or image");
+
+            string? imageUrl = null;
+            MessageType type = MessageType.Text;
+
+            if (request.Image != null)
+            {
+                imageUrl = await _localFileStorage.SaveChatImageAsync(request.Image);
+                type = MessageType.Image;
+            }
+
             var msg = new Message
             {
-                ConversationId = conv.Id,
+                ConversationId = request.ConversationId,
                 SenderId = myUserId,
-                Text = request.Text.Trim(),
+                Type = type,
+                Text = request.Text,
+                ImageUrl = imageUrl,
                 SentAtUtc = DateTime.UtcNow,
                 IsRead = false
             };
 
             var saved = await _msgRepo.AddAsync(msg);
 
-           
-            conv.LastMessageText = saved.Text;
+            // last message
+            conv.LastMessageText = type == MessageType.Image
+                ? "[Image]"
+                : saved.Text;
+
             conv.LastMessageAtUtc = saved.SentAtUtc;
             await _convRepo.SaveChangesAsync();
+
             var receiverId = conv.User1Id == myUserId ? conv.User2Id : conv.User1Id;
 
-          
             var me = await _userManager.FindByIdAsync(myUserId);
             var senderName = me?.FullName ?? "مستخدم";
 
             await _notificationService.CreateAsync(
                 receiverId,
-                "رسالة جديدة",
-                $"رسالة جديدة من {senderName}",
+                type == MessageType.Image ? "صورة جديدة" : "رسالة جديدة",
+                type == MessageType.Image
+                    ? $"صورة جديدة من {senderName}"
+                    : $"رسالة جديدة من {senderName}",
                 "Message",
                 targetType: "Chat",
                 targetId: conv.Id
             );
+
             return new MessageResponse
             {
                 Id = saved.Id,
