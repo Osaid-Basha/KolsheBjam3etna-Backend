@@ -29,10 +29,9 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
 
         public async Task<List<PartnerOfferListDto>> GetAllAsync(string? type = null, string? search = null)
         {
-            var q = _db.PartnerOffers
-                .AsNoTracking()
-                .Where(x => x.ExpireDateUtc >= DateTime.UtcNow)
-                .AsQueryable();
+           var q = _db.PartnerOffers
+    .AsNoTracking()
+    .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(type) &&
                 Enum.TryParse<PartnerOfferType>(type, true, out var parsedType))

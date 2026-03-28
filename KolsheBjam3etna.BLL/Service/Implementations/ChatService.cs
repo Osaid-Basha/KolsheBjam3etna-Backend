@@ -75,6 +75,7 @@ namespace KolsheBjam3etna.BLL.Service.Class
                     OtherUserId = otherId,
                     OtherFullName = other?.FullName ?? "",
                     OtherProfileImageUrl = other?.ProfileImageUrl,
+
                     LastMessageText = c.LastMessageText,
                     LastMessageAtUtc = c.LastMessageAtUtc,
                     UnreadCount = unread
@@ -104,6 +105,7 @@ namespace KolsheBjam3etna.BLL.Service.Class
                 ConversationId = m.ConversationId,
                 SenderId = m.SenderId,
                 Text = m.Text,
+                ImageUrl = m.ImageUrl,
                 SentAtUtc = m.SentAtUtc,
                 IsRead = m.IsRead
             }).ToList();
@@ -171,6 +173,7 @@ namespace KolsheBjam3etna.BLL.Service.Class
                 Id = saved.Id,
                 ConversationId = saved.ConversationId,
                 SenderId = saved.SenderId,
+                ImageUrl = saved.ImageUrl,
                 Text = saved.Text,
                 SentAtUtc = saved.SentAtUtc,
                 IsRead = saved.IsRead

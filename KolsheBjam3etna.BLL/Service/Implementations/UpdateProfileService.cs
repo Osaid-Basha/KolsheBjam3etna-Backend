@@ -1,25 +1,27 @@
 ﻿using KolsheBjam3etna.BLL.Service.Interface;
+using KolsheBjam3etna.DAL.Data;
 using KolsheBjam3etna.DAL.DTOs.Request;
 using KolsheBjam3etna.DAL.DTOs.Response;
 using KolsheBjam3etna.DAL.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-
+using Microsoft.EntityFrameworkCore;
 namespace KolsheBjam3etna.BLL.Service.Class
 {
     public class UpdateProfileService : IUpdateProfileService
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILocalFileStorageService _localFileStorage;
-
+        private readonly ApplicationDbContext _dbContext;
         public UpdateProfileService(
-            UserManager<ApplicationUser> userManager,
-            ILocalFileStorageService localFileStorage)
+    UserManager<ApplicationUser> userManager,
+    ILocalFileStorageService localFileStorage,
+    ApplicationDbContext dbContext)
         {
             _userManager = userManager;
             _localFileStorage = localFileStorage;
+            _dbContext = dbContext;
         }
-
         public async Task<ApiResponse<ProfileResponse>> UpdatePersonalProfile(string userId, UpdatePersonalProfileRequest request)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -107,7 +109,32 @@ namespace KolsheBjam3etna.BLL.Service.Class
             if (user == null)
                 return new ApiResponse<ProfileResponse>(false, "User not found");
 
-            return new ApiResponse<ProfileResponse>(true, "Profile loaded", MapToProfileResponse(user));
+            string? universityName = null;
+
+            if (user.UniversityId.HasValue)
+            {
+                universityName = await _dbContext.Universities
+                    .Where(u => u.Id == user.UniversityId.Value)
+                    .Select(u => u.Name)
+                    .FirstOrDefaultAsync();
+            }
+
+            var response = new ProfileResponse
+            {
+                FullName = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Bio = user.Bio,
+                WebsiteUrl = user.WebsiteUrl,
+                ProfileImageUrl = user.ProfileImageUrl,
+                UniversityId = user.UniversityId,
+                UniversityName = universityName,
+                Major = user.Major,
+                StudyYear = user.StudyYear,
+                UniversityNumber = user.UniversityNumber,
+            };
+
+            return new ApiResponse<ProfileResponse>(true, "Profile loaded", response);
         }
 
         private static ProfileResponse MapToProfileResponse(ApplicationUser user)

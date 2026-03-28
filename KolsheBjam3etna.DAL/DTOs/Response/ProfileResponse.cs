@@ -17,7 +17,7 @@ namespace KolsheBjam3etna.DAL.DTOs.Response
         public string? WebsiteUrl { get; set; }
 
         public string? ProfileImageUrl { get; set; }
-
+        public string? UniversityName { get; set; }
         public int? UniversityId { get; set; }
 
         public string? Major { get; set; }

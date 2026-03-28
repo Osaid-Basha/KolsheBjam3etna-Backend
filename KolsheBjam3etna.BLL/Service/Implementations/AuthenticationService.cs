@@ -247,13 +247,24 @@ namespace KolsheBjam3etna.BLL.Service.Class
 
             await _userManager.UpdateAsync(user);
 
+            string? universityName = null;
+
+            if (user.UniversityId.HasValue)
+            {
+                universityName = await _dbContext.Universities
+                    .Where(u => u.Id == user.UniversityId.Value)
+                    .Select(u => u.Name)
+                    .FirstOrDefaultAsync();
+            }
+
             var response = new ProfileResponse
             {
                 FullName = user.FullName,
                 Email = user.Email,
                 Bio = user.Bio,
                 Major = user.Major,
-                UniversityId = user.UniversityId,
+                UniversityId = request.UniversityId,
+                UniversityName = universityName,
                 ProfileImageUrl = user.ProfileImageUrl
             };
 

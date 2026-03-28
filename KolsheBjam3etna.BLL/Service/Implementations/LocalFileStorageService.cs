@@ -147,7 +147,7 @@ namespace KolsheBjam3etna.BLL.Service.Class
             var wwwroot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             var folder = Path.Combine(wwwroot, "uploads", "partner-offers");
             Directory.CreateDirectory(folder);
-
+                
             var name = $"{Guid.NewGuid()}{ext}";
             var path = Path.Combine(folder, name);
 

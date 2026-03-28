@@ -46,6 +46,7 @@ namespace KolsheBjam3etna.PL.Areas.Identity
             => Ok(await _chat.GetMessagesAsync(MyId, conversationId, take, beforeId));
 
         [HttpPost("send")]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> Send([FromForm] SendMessageRequest request)
         {
             var myId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
