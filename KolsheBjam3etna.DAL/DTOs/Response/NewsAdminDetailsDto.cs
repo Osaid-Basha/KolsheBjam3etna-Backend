@@ -4,11 +4,13 @@ using System.Text;
 
 namespace KolsheBjam3etna.DAL.DTOs.Response
 {
-    public class NewsListItemDto
+    public class NewsAdminDetailsDto
     {
         public int Id { get; set; }
 
         public string Title { get; set; }
+
+        public string Content { get; set; }
 
         public string Source { get; set; }
 

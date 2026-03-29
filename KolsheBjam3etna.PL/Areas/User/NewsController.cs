@@ -1,6 +1,5 @@
 ﻿using KolsheBjam3etna.BLL.Service.Interface;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KolsheBjam3etna.PL.Areas.User
@@ -16,7 +15,6 @@ namespace KolsheBjam3etna.PL.Areas.User
             _service = service;
         }
 
-        // عرض الأخبار المنشورة فقط
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> GetPublished()
@@ -25,7 +23,6 @@ namespace KolsheBjam3etna.PL.Areas.User
             return Ok(res);
         }
 
-        // تفاصيل خبر
         [HttpGet("{id:int}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetDetails(int id)

@@ -2,11 +2,6 @@
 using KolsheBjam3etna.DAL.DTOs.Response;
 using KolsheBjam3etna.DAL.Models;
 using KolsheBjam3etna.DAL.Repository.Interface;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 namespace KolsheBjam3etna.DAL.Repository.Implementations
@@ -42,6 +37,7 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
                     Category = x.Category,
                     ImageUrl = x.ImageUrl,
                     IsImportant = x.IsImportant,
+                    IsPublished = x.IsPublished,
                     ViewsCount = x.ViewsCount,
                     CreatedAtUtc = x.CreatedAtUtc
                 })
@@ -62,19 +58,17 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
                     Category = x.Category,
                     ImageUrl = x.ImageUrl,
                     IsImportant = x.IsImportant,
+                    IsPublished = x.IsPublished,
                     ViewsCount = x.ViewsCount,
                     CreatedAtUtc = x.CreatedAtUtc
                 })
                 .ToListAsync();
         }
-        public async Task Remove(int id)
+
+        public Task Remove(News news)
         {
-            var news = await _db.News.FirstOrDefaultAsync(x => x.Id == id);
-            if (news != null)
-            {
-                _db.News.Remove(news);
-                await _db.SaveChangesAsync();
-            }
+            _db.News.Remove(news);
+            return Task.CompletedTask;
         }
     }
 }
