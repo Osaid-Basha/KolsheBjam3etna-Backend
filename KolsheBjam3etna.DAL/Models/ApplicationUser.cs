@@ -8,7 +8,7 @@ namespace KolsheBjam3etna.DAL.Models
 
         public int? UniversityId { get; set; }
         public University? University { get; set; }
-
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public string? Major { get; set; }
 
         public int? StudyYear { get; set; }

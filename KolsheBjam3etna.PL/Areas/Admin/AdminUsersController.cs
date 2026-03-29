@@ -1,4 +1,5 @@
 ﻿using KolsheBjam3etna.BLL.Service.Interface;
+using KolsheBjam3etna.DAL.DTOs.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,15 +17,15 @@ namespace KolsheBjam3etna.PL.Controllers
             _service = service;
         }
 
-        
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] string? search = null, [FromQuery] string? status = null)
+        public async Task<IActionResult> GetAll(
+            [FromQuery] string? search = null,
+            [FromQuery] string? status = null)
         {
             var res = await _service.GetUsersAsync(search, status);
             return Ok(res);
         }
 
-       
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(string id)
         {
@@ -32,7 +33,13 @@ namespace KolsheBjam3etna.PL.Controllers
             return res.Success ? Ok(res) : NotFound(res);
         }
 
-        
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(string id, [FromBody] AdminUpdateUserDto dto)
+        {
+            var res = await _service.UpdateUserAsync(id, dto);
+            return res.Success ? Ok(res) : NotFound(res);
+        }
+
         [HttpPost("{id}/block")]
         public async Task<IActionResult> Block(string id)
         {
@@ -40,11 +47,17 @@ namespace KolsheBjam3etna.PL.Controllers
             return res.Success ? Ok(res) : NotFound(res);
         }
 
-       
         [HttpPost("{id}/unblock")]
         public async Task<IActionResult> Unblock(string id)
         {
             var res = await _service.UnblockAsync(id);
+            return res.Success ? Ok(res) : NotFound(res);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            var res = await _service.DeleteUserAsync(id);
             return res.Success ? Ok(res) : NotFound(res);
         }
     }
