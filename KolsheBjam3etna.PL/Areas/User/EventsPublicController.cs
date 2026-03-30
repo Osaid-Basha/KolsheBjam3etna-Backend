@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 [Route("api/[controller]")]
+[Authorize]
 [ApiController]
 public class EventsPublicController : ControllerBase
 {
