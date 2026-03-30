@@ -1,17 +1,17 @@
 ﻿using KolsheBjam3etna.DAL.DTOs.Request;
 using KolsheBjam3etna.DAL.DTOs.Response;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace KolsheBjam3etna.BLL.Service.Interface
 {
     public interface IAdminRolesService
     {
         Task<ApiResponse<List<AdminRoleSummaryDto>>> GetRolesSummaryAsync();
-        Task<ApiResponse<List<string>>> GetUserRolesAsync(string email);
-
+        Task<ApiResponse<List<AdminRoleUserDto>>> GetAllRoleUsersAsync(string? search = null, string? role = null);
+        Task<ApiResponse<AdminRoleUserDto>> GetUserRoleAsync(string email);
+        Task<ApiResponse<List<RoleOptionDto>>> GetAvailableRolesAsync();
+        Task<ApiResponse<List<ClubOptionDto>>> GetClubOptionsAsync();
         Task<ApiResponse<string>> AssignRoleAsync(AssignRoleByEmailRequest req);
+        Task<ApiResponse<string>> UpdateRoleAsync(UpdateRoleByEmailRequest req);
         Task<ApiResponse<string>> RemoveRoleAsync(RemoveRoleByEmailRequest req);
     }
 }

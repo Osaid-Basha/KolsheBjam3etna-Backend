@@ -3,9 +3,6 @@ using KolsheBjam3etna.DAL.DTOs.Request;
 using KolsheBjam3etna.DAL.DTOs.Response;
 using KolsheBjam3etna.DAL.Models;
 using KolsheBjam3etna.DAL.Repository.Interface;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Microsoft.EntityFrameworkCore;
 
 namespace KolsheBjam3etna.DAL.Repository.Implementations
@@ -13,19 +10,34 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
     public class EventPublicRepository : IEventPublicRepository
     {
         private readonly ApplicationDbContext _db;
-        public EventPublicRepository(ApplicationDbContext db) => _db = db;
+
+        public EventPublicRepository(ApplicationDbContext db)
+        {
+            _db = db;
+        }
 
         public async Task<List<EventListItemDto>> GetAllAsync(string? search, string? type)
         {
-            var q = _db.Events.AsNoTracking()
+            var q = _db.Events
+                .AsNoTracking()
                 .Include(e => e.Registrations)
+                .Include(e => e.Club)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
-                q = q.Where(e => e.Title.Contains(search) || e.Description.Contains(search));
+            {
+                var keyword = search.Trim();
+
+                q = q.Where(e =>
+                    e.Title.Contains(keyword) ||
+                    e.Description.Contains(keyword) ||
+                    e.Club.Name.Contains(keyword));
+            }
 
             if (!string.IsNullOrWhiteSpace(type))
+            {
                 q = q.Where(e => e.Type == type);
+            }
 
             return await q
                 .OrderBy(e => e.DateTimeUtc)
@@ -40,7 +52,7 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
                     RegisteredCount = e.Registrations.Count,
                     CoverImageUrl = e.CoverImageUrl,
                     Description = e.Description,
-                        ClubName = e.ClubName
+                    ClubName = e.Club.Name
                 })
                 .ToListAsync();
         }
@@ -51,6 +63,7 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
                 .AsNoTracking()
                 .Include(e => e.Agenda)
                 .Include(e => e.Registrations)
+                .Include(e => e.Club)
                 .Where(e => e.Id == eventId)
                 .Select(e => new EventDetailsDto
                 {
@@ -64,6 +77,7 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
                     Description = e.Description,
                     Content = e.Content,
                     CoverImageUrl = e.CoverImageUrl,
+                    ClubName = e.Club.Name,
 
                     Agenda = e.Agenda
                         .OrderBy(a => a.Order)
@@ -76,7 +90,8 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
                                 : null,
                             Order = a.Order,
                             IsVisible = a.IsVisible
-                        }).ToList()
+                        })
+                        .ToList()
                 })
                 .FirstOrDefaultAsync();
         }
@@ -103,16 +118,25 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
 
             _db.EventRegistrations.Add(reg);
             await _db.SaveChangesAsync();
+
             return reg.Id;
         }
-        public async Task<(string Title, string CoordinatorId)?> GetEventBasicAsync(int eventId)
+
+        public async Task<EventBasicDto?> GetEventBasicAsync(int eventId)
         {
-            return await _db.Events.AsNoTracking()
+            return await _db.Events
+                .AsNoTracking()
+                .Include(e => e.Club)
                 .Where(e => e.Id == eventId)
-                .Select(e => new ValueTuple<string, string>(e.Title, e.CoordinatorId))
+                .Select(e => new EventBasicDto
+                {
+                    Id = e.Id,
+                    Title = e.Title,
+                    Capacity = e.Capacity,
+                    ClubId = e.ClubId,
+                    ClubOwnerId = e.Club != null ? e.Club.OwnerId : null
+                })
                 .FirstOrDefaultAsync();
         }
-
-
     }
 }

@@ -4,10 +4,10 @@ using System.Text;
 
 namespace KolsheBjam3etna.DAL.DTOs.Request
 {
-
-    public class RemoveRoleByEmailRequest
+    public class UpdateRoleByEmailRequest
     {
         public string Email { get; set; } = null!;
-        public string Role { get; set; } = null!;
+        public string NewRole { get; set; } = null!;
+        public int? ClubId { get; set; }
     }
 }

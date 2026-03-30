@@ -20,12 +20,15 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
         public async Task AddAsync(Event e) => await _db.Events.AddAsync(e);
         public async Task SaveAsync() => await _db.SaveChangesAsync();
 
-        public async Task<List<CoordinatorEventCardDto>> GetCoordinatorEventsAsync(string coordinatorId)
+        public async Task<List<CoordinatorEventCardDto>> GetCoordinatorEventsAsync(string ownerId)
         {
+            var club = await GetClubByOwnerIdAsync(ownerId);
+            if (club == null) return new List<CoordinatorEventCardDto>();
+
             return await _db.Events
                 .AsNoTracking()
                 .Include(x => x.Registrations)
-                .Where(x => x.CoordinatorId == coordinatorId)
+                .Where(x => x.ClubId == club.Id)
                 .OrderByDescending(x => x.CreatedAtUtc)
                 .Select(x => new CoordinatorEventCardDto
                 {
@@ -42,12 +45,15 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
                 .ToListAsync();
         }
 
-        public async Task<CoordinatorDashboardDto> GetCoordinatorDashboardAsync(string coordinatorId)
+        public async Task<CoordinatorDashboardDto> GetCoordinatorDashboardAsync(string ownerId)
         {
+            var club = await GetClubByOwnerIdAsync(ownerId);
+            if (club == null) return new CoordinatorDashboardDto();
+
             var events = await _db.Events
                 .AsNoTracking()
                 .Include(x => x.Registrations)
-                .Where(x => x.CoordinatorId == coordinatorId)
+                .Where(x => x.ClubId == club.Id)
                 .ToListAsync();
 
             var activeEvents = events.Count(e => e.DateTimeUtc >= DateTime.UtcNow);
@@ -79,10 +85,13 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
                     .ToList()
             };
         }
-        public async Task<List<EventRegistrantDto>> GetRegistrationsAsync(int eventId, string coordinatorId)
+        public async Task<List<EventRegistrantDto>> GetRegistrationsAsync(int eventId, string ownerId)
         {
+            var club = await GetClubByOwnerIdAsync(ownerId);
+            if (club == null) return new List<EventRegistrantDto>();
+
             var exists = await _db.Events.AsNoTracking()
-                .AnyAsync(e => e.Id == eventId && e.CoordinatorId == coordinatorId);
+                .AnyAsync(e => e.Id == eventId && e.ClubId == club.Id);
 
             if (!exists) return new List<EventRegistrantDto>();
 
@@ -103,12 +112,15 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
                 })
                 .ToListAsync();
         }
-        public async Task<bool> DeleteAsync(int eventId, string coordinatorId)
+        public async Task<bool> DeleteAsync(int eventId, string ownerId)
         {
+            var club = await GetClubByOwnerIdAsync(ownerId);
+            if (club == null) return false;
+
             var ev = await _db.Events
                 .Include(e => e.Registrations)
-                .Include(e => e.Agenda) // ✅
-                .FirstOrDefaultAsync(e => e.Id == eventId && e.CoordinatorId == coordinatorId);
+                .Include(e => e.Agenda)
+                .FirstOrDefaultAsync(e => e.Id == eventId && e.ClubId == club.Id);
 
             if (ev == null) return false;
 
@@ -116,11 +128,14 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
             await _db.SaveChangesAsync();
             return true;
         }
-        public async Task<bool> UpdateAsync(int eventId, string coordinatorId, UpdateEventRequest req, string? newCoverUrl)
+        public async Task<bool> UpdateAsync(int eventId, string ownerId, UpdateEventRequest req, string? newCoverUrl)
         {
+            var club = await GetClubByOwnerIdAsync(ownerId);
+            if (club == null) return false;
+
             var ev = await _db.Events
-                .Include(e => e.Agenda)   // ✅ مهم
-                .FirstOrDefaultAsync(e => e.Id == eventId && e.CoordinatorId == coordinatorId);
+                .Include(e => e.Agenda)
+                .FirstOrDefaultAsync(e => e.Id == eventId && e.ClubId == club.Id);
 
             if (ev == null) return false;
 
@@ -178,6 +193,11 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
 
             await _db.SaveChangesAsync();
             return true;
+        }
+        public async Task<Club?> GetClubByOwnerIdAsync(string ownerId)
+        {
+            return await _db.Clubs
+                .FirstOrDefaultAsync(c => c.OwnerId == ownerId);
         }
 
     }

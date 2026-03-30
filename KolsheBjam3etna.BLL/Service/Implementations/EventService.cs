@@ -25,7 +25,7 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
             _notificationService = notificationService;
         }
 
-        public async Task<ApiResponse<int>> CreateAsync(string coordinatorId, CreateEventRequest req)
+        public async Task<ApiResponse<int>> CreateAsync(string ownerId, CreateEventRequest req)
         {
             
             if (string.IsNullOrWhiteSpace(req.Title))
@@ -68,9 +68,17 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
                 coverUrl = await _storage.SaveEventCoverAsync(req.CoverImage);
 
 
+            // جيب النادي تبع المستخدم
+            var club = await _repo.GetClubByOwnerIdAsync(ownerId);
+
+            if (club == null)
+                return ApiResponse<int>.Fail("User does not own a club");
+
+            // إنشاء الفعالية
             var e = new Event
             {
-                CoordinatorId = coordinatorId,
+                ClubId = club.Id,
+
                 Title = req.Title.Trim(),
                 Type = req.Type.Trim(),
                 Location = req.Location.Trim(),
@@ -79,7 +87,6 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
                 Description = req.Description.Trim(),
                 Content = string.IsNullOrWhiteSpace(req.Content) ? null : req.Content.Trim(),
                 CoverImageUrl = coverUrl,
-                ClubName = req.ClubName,
             };
             foreach (var item in agenda.OrderBy(x => x.Order))
             {
@@ -104,20 +111,20 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
             return ApiResponse<int>.Ok(e.Id, "Event created");
         }
 
-        public async Task<ApiResponse<List<CoordinatorEventCardDto>>> GetMyEventsAsync(string coordinatorId)
+        public async Task<ApiResponse<List<CoordinatorEventCardDto>>> GetMyEventsAsync(string ownerId)
         {
-            var items = await _repo.GetCoordinatorEventsAsync(coordinatorId);
+            var items = await _repo.GetCoordinatorEventsAsync(ownerId);
             return ApiResponse<List<CoordinatorEventCardDto>>.Ok(items, "Success");
         }
 
-        public async Task<ApiResponse<CoordinatorDashboardDto>> GetDashboardAsync(string coordinatorId)
+        public async Task<ApiResponse<CoordinatorDashboardDto>> GetDashboardAsync(string ownerId)
         {
-            var dto = await _repo.GetCoordinatorDashboardAsync(coordinatorId);
+            var dto = await _repo.GetCoordinatorDashboardAsync(ownerId);
             return ApiResponse<CoordinatorDashboardDto>.Ok(dto, "Success");
         }
-        public async Task<ApiResponse<List<EventRegistrantDto>>> GetRegistrationsAsync(string coordinatorId, int eventId)
+        public async Task<ApiResponse<List<EventRegistrantDto>>> GetRegistrationsAsync(string ownerId, int eventId)
         {
-            var items = await _repo.GetRegistrationsAsync(eventId, coordinatorId);
+            var items = await _repo.GetRegistrationsAsync(eventId, ownerId);
 
            
             if (items.Count == 0)
@@ -126,19 +133,19 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
 
             return ApiResponse<List<EventRegistrantDto>>.Ok(items, "Success");
         }
-        public async Task<ApiResponse<string>> DeleteAsync(string coordinatorId, int eventId)
+        public async Task<ApiResponse<string>> DeleteAsync(string ownerId, int eventId)
         {
-            var ok = await _repo.DeleteAsync(eventId, coordinatorId);
+            var ok = await _repo.DeleteAsync(eventId, ownerId);
             if (!ok) return ApiResponse<string>.Fail("Event not found");
             return ApiResponse<string>.Ok("Deleted", "Event deleted");
         }
-        public async Task<ApiResponse<string>> UpdateAsync(string coordinatorId, int eventId, UpdateEventRequest req)
+        public async Task<ApiResponse<string>> UpdateAsync(string ownerId, int eventId, UpdateEventRequest req)
         {
             string? coverUrl = null;
             if (req.CoverImage != null)
                 coverUrl = await _storage.SaveEventCoverAsync(req.CoverImage);
 
-            var ok = await _repo.UpdateAsync(eventId, coordinatorId, req, coverUrl);
+            var ok = await _repo.UpdateAsync(eventId, ownerId, req, coverUrl);
             if (!ok) return ApiResponse<string>.Fail("Event not found");
 
             return ApiResponse<string>.Ok("Updated", "Event updated");

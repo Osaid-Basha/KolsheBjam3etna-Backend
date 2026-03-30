@@ -1,4 +1,5 @@
 using KolsheBjam3etna.BLL.Service.Class;
+using KolsheBjam3etna.BLL.Service.Implementation;
 using KolsheBjam3etna.BLL.Service.Implementations;
 using KolsheBjam3etna.BLL.Service.Interface;
 using KolsheBjam3etna.DAL.Data;
@@ -108,6 +109,7 @@ namespace KolsheBjam3etna.PL
             builder.Services.AddScoped<IPartnerOfferService, PartnerOfferService>();
             builder.Services.AddHttpClient();
             builder.Services.AddHttpClient<IAIService, AIService>();
+            builder.Services.AddScoped<IAdminClubsService, AdminClubsService>();
 
             var app = builder.Build();
 

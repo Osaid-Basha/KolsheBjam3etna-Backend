@@ -21,6 +21,7 @@ namespace KolsheBjam3etna.DAL.DTOs.Response
         public string CoordinatorName { get; set; } = "";
         public string? CoordinatorProfileImageUrl { get; set; }
         public string? Content { get; set; }
+        public string ClubName { get; set; } = "";
         public List<EventAgendaItemDto> Agenda { get; set; } = new();
     }
 }

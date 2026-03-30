@@ -33,6 +33,7 @@ namespace KolsheBjam3etna.DAL.Data
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<News> News { get; set; }
         public DbSet<PartnerOffer> PartnerOffers { get; set; }
+        public DbSet<Club> Clubs { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
 
@@ -74,13 +75,20 @@ namespace KolsheBjam3etna.DAL.Data
         .HasOne(er => er.User)
         .WithMany()
         .HasForeignKey(er => er.UserId)
-        .OnDelete(DeleteBehavior.NoAction); 
+        .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Entity<Club>()
+    .HasOne(c => c.Owner)
+    .WithMany()
+    .HasForeignKey(c => c.OwnerId)
+    .OnDelete(DeleteBehavior.SetNull);
 
             builder.Entity<Event>()
-                .HasOne(e => e.Coordinator)
-                .WithMany()
-                .HasForeignKey(e => e.CoordinatorId)
-                .OnDelete(DeleteBehavior.NoAction);
+    .HasOne(e => e.Club)
+    .WithMany(c => c.Events)
+    .HasForeignKey(e => e.ClubId)
+    .OnDelete(DeleteBehavior.SetNull);
+
             builder.Entity<EventAgendaItem>()
     .HasOne(x => x.Event)
     .WithMany(e => e.Agenda)
@@ -103,6 +111,15 @@ namespace KolsheBjam3etna.DAL.Data
     .WithMany()
     .HasForeignKey(n => n.UserId)
     .OnDelete(DeleteBehavior.NoAction);
+            builder.Entity<Club>(entity =>
+            {
+                entity.Property(x => x.Name).HasMaxLength(200).IsRequired();
+                entity.Property(x => x.UniversityName).HasMaxLength(200).IsRequired();
+                entity.Property(x => x.ManagerName).HasMaxLength(200).IsRequired();
+                entity.Property(x => x.ManagerEmail).HasMaxLength(256).IsRequired();
+                entity.Property(x => x.SubscriptionType).HasMaxLength(50).IsRequired();
+                entity.Property(x => x.SubscriptionPrice).HasColumnType("decimal(18,2)");
+            });
         }
     }
     }

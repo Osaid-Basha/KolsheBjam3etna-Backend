@@ -22,5 +22,8 @@ namespace KolsheBjam3etna.DAL.Models
         public string? ProfileImageUrl { get; set; }
 
         public bool IsProfileCompleted { get; set; } = false;
+
+        public int? ManagedEventId { get; set; }
+        public Event? ManagedEvent { get; set; }
     }
 }

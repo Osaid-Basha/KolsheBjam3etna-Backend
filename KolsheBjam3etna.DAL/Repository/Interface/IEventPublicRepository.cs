@@ -1,8 +1,5 @@
 ﻿using KolsheBjam3etna.DAL.DTOs.Request;
 using KolsheBjam3etna.DAL.DTOs.Response;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace KolsheBjam3etna.DAL.Repository.Interface
 {
@@ -16,6 +13,6 @@ namespace KolsheBjam3etna.DAL.Repository.Interface
         Task<bool> IsUserRegisteredAsync(int eventId, string userId);
 
         Task<int> RegisterAsync(int eventId, string userId, RegisterEventRequest req);
-        Task<(string Title, string CoordinatorId)?> GetEventBasicAsync(int eventId);
+        Task<EventBasicDto?> GetEventBasicAsync(int eventId);
     }
 }

@@ -18,6 +18,6 @@ namespace KolsheBjam3etna.DAL.Repository.Interface
         Task<List<EventRegistrantDto>> GetRegistrationsAsync(int eventId, string coordinatorId);
         Task<bool> DeleteAsync(int eventId, string coordinatorId);
         Task<bool> UpdateAsync(int eventId, string coordinatorId, UpdateEventRequest req, string? newCoverUrl);
-
+        Task<Club?> GetClubByOwnerIdAsync(string ownerId);
     }
 }
