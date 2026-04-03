@@ -34,6 +34,7 @@ namespace KolsheBjam3etna.DAL.Data
         public DbSet<News> News { get; set; }
         public DbSet<PartnerOffer> PartnerOffers { get; set; }
         public DbSet<Club> Clubs { get; set; }
+        public DbSet<MessageImage> MessageImages => Set<MessageImage>();
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
 
@@ -111,6 +112,11 @@ namespace KolsheBjam3etna.DAL.Data
     .WithMany()
     .HasForeignKey(n => n.UserId)
     .OnDelete(DeleteBehavior.NoAction);
+            builder.Entity<MessageImage>()
+    .HasOne(x => x.Message)
+    .WithMany(x => x.Images)
+    .HasForeignKey(x => x.MessageId)
+    .OnDelete(DeleteBehavior.Cascade);
             builder.Entity<Club>(entity =>
             {
                 entity.Property(x => x.Name).HasMaxLength(200).IsRequired();

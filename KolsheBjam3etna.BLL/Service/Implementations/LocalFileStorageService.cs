@@ -156,5 +156,46 @@ namespace KolsheBjam3etna.BLL.Service.Class
 
             return $"/uploads/partner-offers/{name}";
         }
+        public async Task<string?> SaveChatFileAsync(IFormFile file)
+        {
+            if (file == null || file.Length == 0) return null;
+
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            var allowed = new[] { ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".txt", ".zip", ".rar" };
+
+            if (!allowed.Contains(ext))
+                throw new Exception("Invalid file type");
+
+            if (file.Length > 10 * 1024 * 1024)
+                throw new Exception("File too large");
+
+            var wwwroot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var folder = Path.Combine(wwwroot, "uploads", "chat", "files");
+            Directory.CreateDirectory(folder);
+
+            var name = $"{Guid.NewGuid()}{ext}";
+            var fullPath = Path.Combine(folder, name);
+
+            using var stream = new FileStream(fullPath, FileMode.Create);
+            await file.CopyToAsync(stream);
+
+            return $"/uploads/chat/files/{name}";
+        }
+
+        public Task DeleteFileAsync(string? relativePath)
+        {
+            if (string.IsNullOrWhiteSpace(relativePath))
+                return Task.CompletedTask;
+
+            var wwwroot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+
+            var cleaned = relativePath.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString());
+            var fullPath = Path.Combine(wwwroot, cleaned);
+
+            if (File.Exists(fullPath))
+                File.Delete(fullPath);
+
+            return Task.CompletedTask;
+        }
     }
 }

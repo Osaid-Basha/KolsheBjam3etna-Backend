@@ -110,6 +110,7 @@ namespace KolsheBjam3etna.PL
             builder.Services.AddHttpClient();
             builder.Services.AddHttpClient<IAIService, AIService>();
             builder.Services.AddScoped<IAdminClubsService, AdminClubsService>();
+            builder.Services.AddScoped<IMessageImageRepository, MessageImageRepository> ();
 
             var app = builder.Build();
 

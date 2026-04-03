@@ -55,12 +55,16 @@ namespace KolsheBjam3etna.BLL.Service.Class
                 {
                     Message = "Login successful",
                     Token = token,
-                    IsProfileCompleted = user.IsProfileCompleted
+                    IsProfileCompleted = user.IsProfileCompleted,
+                    Roles = roles
                 };
             }
             catch (Exception ex)
             {
-                return new LoginResponse { Message = "An error occurred: " + ex.Message };
+                return new LoginResponse
+                {
+                    Message = "An error occurred: " + ex.Message
+                };
             }
         }
 

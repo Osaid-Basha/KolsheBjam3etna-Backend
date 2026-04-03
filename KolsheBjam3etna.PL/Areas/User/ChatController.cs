@@ -1,10 +1,10 @@
 ﻿using KolsheBjam3etna.BLL.Service.Interface;
 using KolsheBjam3etna.DAL.DTOs.Request;
+using KolsheBjam3etna.PL.Hubs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
-using KolsheBjam3etna.PL.Hubs;
 
 namespace KolsheBjam3etna.PL.Areas.Identity
 {
@@ -27,41 +27,63 @@ namespace KolsheBjam3etna.PL.Areas.Identity
         [HttpPost("dm")]
         public async Task<IActionResult> CreateDm([FromBody] CreateDmRequest request)
         {
-            var myUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Console.WriteLine($"myUserId = {myUserId}");
-            Console.WriteLine($"otherUserId = {request.OtherUserId}");
-            if (string.IsNullOrWhiteSpace(myUserId))
-                return Unauthorized(new { message = "Missing user id in token" });
-
-            var id = await _chat.CreateOrGetDmAsync(myUserId, request.OtherUserId);
-            return Ok(new { conversationId = id });
+            var conversationId = await _chat.CreateOrGetDmAsync(MyId, request.OtherUserId);
+            return Ok(new { conversationId });
         }
 
         [HttpGet("list")]
         public async Task<IActionResult> List()
-            => Ok(await _chat.GetMyChatsAsync(MyId));
+        {
+            var chats = await _chat.GetMyChatsAsync(MyId);
+            return Ok(chats);
+        }
 
         [HttpGet("{conversationId:int}/messages")]
         public async Task<IActionResult> Messages(int conversationId, [FromQuery] int take = 50, [FromQuery] long? beforeId = null)
-            => Ok(await _chat.GetMessagesAsync(MyId, conversationId, take, beforeId));
+        {
+            var messages = await _chat.GetMessagesAsync(MyId, conversationId, take, beforeId);
+            return Ok(messages);
+        }
 
         [HttpPost("send")]
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> Send([FromForm] SendMessageRequest request)
         {
-            var myId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var message = await _chat.SendMessageAsync(MyId, request);
+            await BroadcastToConversationUsers(message.ConversationId, "ReceiveMessage", message);
+            return Ok(message);
+        }
 
-            var msg = await _chat.SendMessageAsync(myId, request);
+        [HttpPut("messages/{messageId:long}")]
+        public async Task<IActionResult> EditMessage(long messageId, [FromBody] EditMessageRequest request)
+        {
+            var message = await _chat.EditMessageAsync(MyId, messageId, request);
+            await BroadcastToConversationUsers(message.ConversationId, "MessageUpdated", message);
+            return Ok(message);
+        }
 
-            var receiverId = await _chat.GetReceiverIdAsync(myId, request.ConversationId);
+        [HttpDelete("messages/{messageId:long}")]
+        public async Task<IActionResult> DeleteMessage(long messageId)
+        {
+            var conversationId = await _chat.DeleteMessageAsync(MyId, messageId);
+            await BroadcastToConversationUsers(conversationId, "MessageDeleted", new { messageId });
+            return Ok(new { message = "Message deleted" });
+        }
 
-            await _hub.Clients.Group($"user:{myId}")
-                .SendAsync("ReceiveMessage", msg);
+        [HttpDelete("messages/{messageId:long}/file")]
+        public async Task<IActionResult> RemoveFile(long messageId)
+        {
+            var message = await _chat.RemoveMessageFileAsync(MyId, messageId);
+            await BroadcastToConversationUsers(message.ConversationId, "MessageUpdated", message);
+            return Ok(message);
+        }
 
-            await _hub.Clients.Group($"user:{receiverId}")
-                .SendAsync("ReceiveMessage", msg);
-
-            return Ok(msg);
+        [HttpDelete("messages/{messageId:long}/images/{imageId:long}")]
+        public async Task<IActionResult> RemoveImage(long messageId, long imageId)
+        {
+            var message = await _chat.RemoveMessageImageAsync(MyId, messageId, imageId);
+            await BroadcastToConversationUsers(message.ConversationId, "MessageUpdated", message);
+            return Ok(message);
         }
 
         [HttpPost("{conversationId:int}/read")]
@@ -70,6 +92,16 @@ namespace KolsheBjam3etna.PL.Areas.Identity
             var count = await _chat.MarkReadAsync(MyId, conversationId);
             return Ok(new { marked = count });
         }
-     
+
+        private async Task BroadcastToConversationUsers(int conversationId, string eventName, object payload)
+        {
+            var userIds = await _chat.GetConversationUserIdsAsync(MyId, conversationId);
+
+            foreach (var userId in userIds)
+            {
+                await _hub.Clients.Group($"user:{userId}")
+                    .SendAsync(eventName, payload);
+            }
+        }
     }
 }

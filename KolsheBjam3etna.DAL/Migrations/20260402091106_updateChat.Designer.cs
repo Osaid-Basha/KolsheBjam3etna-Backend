@@ -4,6 +4,7 @@ using KolsheBjam3etna.DAL.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace KolsheBjam3etna.DAL.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260402091106_updateChat")]
+    partial class updateChat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -361,6 +364,9 @@ namespace KolsheBjam3etna.DAL.Migrations
                     b.Property<string>("FileUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -390,31 +396,6 @@ namespace KolsheBjam3etna.DAL.Migrations
                     b.HasIndex("SenderId");
 
                     b.ToTable("Messages");
-                });
-
-            modelBuilder.Entity("KolsheBjam3etna.DAL.Models.MessageImage", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("MessageId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MessageId");
-
-                    b.ToTable("MessageImages");
                 });
 
             modelBuilder.Entity("KolsheBjam3etna.DAL.Models.News", b =>
@@ -1146,17 +1127,6 @@ namespace KolsheBjam3etna.DAL.Migrations
                     b.Navigation("Sender");
                 });
 
-            modelBuilder.Entity("KolsheBjam3etna.DAL.Models.MessageImage", b =>
-                {
-                    b.HasOne("KolsheBjam3etna.DAL.Models.Message", "Message")
-                        .WithMany("Images")
-                        .HasForeignKey("MessageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Message");
-                });
-
             modelBuilder.Entity("KolsheBjam3etna.DAL.Models.Notification", b =>
                 {
                     b.HasOne("KolsheBjam3etna.DAL.Models.ApplicationUser", "User")
@@ -1354,11 +1324,6 @@ namespace KolsheBjam3etna.DAL.Migrations
                     b.Navigation("Agenda");
 
                     b.Navigation("Registrations");
-                });
-
-            modelBuilder.Entity("KolsheBjam3etna.DAL.Models.Message", b =>
-                {
-                    b.Navigation("Images");
                 });
 
             modelBuilder.Entity("KolsheBjam3etna.DAL.Models.ProductAd", b =>
