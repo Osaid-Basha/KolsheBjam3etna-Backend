@@ -20,6 +20,7 @@ namespace KolsheBjam3etna.DAL.DTOs.Request
         [Required]
         [MaxLength(100)]
         public string Category { get; set; }
+        public string description { get; set; }
 
         public IFormFile? Image { get; set; }
 

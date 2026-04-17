@@ -20,7 +20,7 @@ namespace KolsheBjam3etna.DAL.Utils
                 fullName: "osayd albasha",
                 email: "albashaosayd@gmail.com",
                 password: "Password123!",
-                role: "Admin"
+                role: "SuperAdmin"
             );
 
             await SeedUserAsync(

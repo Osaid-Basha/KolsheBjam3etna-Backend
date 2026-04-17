@@ -7,7 +7,7 @@ namespace KolsheBjam3etna.PL.Areas.Admin
 {
     [Route("api/admin/news")]
     [ApiController]
-    [Authorize(Roles = "Admin,SuperAdmin,NewsEditor")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public class AdminNewsController : ControllerBase
     {
         private readonly INewsService _service;

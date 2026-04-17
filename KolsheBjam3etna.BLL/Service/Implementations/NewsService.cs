@@ -49,7 +49,9 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
                 Category = req.Category.Trim(),
                 ImageUrl = imageUrl,
                 IsImportant = req.IsImportant,
-                IsPublished = req.IsPublished
+                IsPublished = req.IsPublished,
+                description = req.description.Trim(),
+
             };
 
             await _repo.AddAsync(news);
@@ -85,7 +87,8 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
             news.Source = req.Source.Trim();
             news.Category = req.Category.Trim();
             news.IsImportant = req.IsImportant;
-           
+            news.description = req.description;
+
 
             if (req.Image != null)
                 news.ImageUrl = await _storage.SaveNewsImageAsync(req.Image);
@@ -140,7 +143,10 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
                 IsImportant = news.IsImportant,
                 IsPublished = news.IsPublished,
                 ViewsCount = news.ViewsCount,
-                CreatedAtUtc = news.CreatedAtUtc
+                CreatedAtUtc = news.CreatedAtUtc,
+                description = news.description
+
+
             };
 
             return ApiResponse<NewsAdminDetailsDto>.Ok(dto, "Success");

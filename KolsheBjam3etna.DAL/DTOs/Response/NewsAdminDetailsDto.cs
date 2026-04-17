@@ -15,7 +15,7 @@ namespace KolsheBjam3etna.DAL.DTOs.Response
         public string Source { get; set; }
 
         public string Category { get; set; }
-
+        public string description { get; set; }
         public string? ImageUrl { get; set; }
 
         public bool IsImportant { get; set; }

@@ -13,6 +13,7 @@ namespace KolsheBjam3etna.DAL.Models
         public string Content { get; set; }
 
         public string Source { get; set; }
+        public string description { get; set; }
 
         public string Category { get; set; }
 

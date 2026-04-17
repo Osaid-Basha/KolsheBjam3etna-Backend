@@ -39,7 +39,9 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
                     IsImportant = x.IsImportant,
                     IsPublished = x.IsPublished,
                     ViewsCount = x.ViewsCount,
-                    CreatedAtUtc = x.CreatedAtUtc
+                    CreatedAtUtc = x.CreatedAtUtc,
+                    description = x.description
+
                 })
                 .ToListAsync();
         }
@@ -60,7 +62,8 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
                     IsImportant = x.IsImportant,
                     IsPublished = x.IsPublished,
                     ViewsCount = x.ViewsCount,
-                    CreatedAtUtc = x.CreatedAtUtc
+                    CreatedAtUtc = x.CreatedAtUtc,
+                    description = x.description
                 })
                 .ToListAsync();
         }
