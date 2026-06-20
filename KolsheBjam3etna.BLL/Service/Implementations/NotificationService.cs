@@ -2,6 +2,7 @@
 using KolsheBjam3etna.DAL.DTOs.Response;
 using KolsheBjam3etna.DAL.Models;
 using KolsheBjam3etna.DAL.Repository.Interface;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -11,10 +12,12 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
     public class NotificationService : INotificationService
     {
         private readonly INotificationRepository _repo;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public NotificationService(INotificationRepository repo)
+        public NotificationService(INotificationRepository repo, UserManager<ApplicationUser> userManager)
         {
             _repo = repo;
+            _userManager = userManager;
         }
 
         public async Task<ApiResponse<NotificationsSummaryDto>> GetMyAsync(string userId, int take = 30)
@@ -85,6 +88,34 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
 
             await _repo.AddAsync(n);
             await _repo.SaveAsync();
+        }
+
+        public async Task CreateForAllUsersAsync(string title, string body, string type, string? targetType = null, int? targetId = null)
+        {
+            if (!Enum.TryParse<NotificationType>(type, true, out var nt))
+                nt = NotificationType.Announcement;
+
+            var userIds = _userManager.Users
+                .Select(user => user.Id)
+                .Where(userId => !string.IsNullOrWhiteSpace(userId))
+                .ToList();
+
+            foreach (var userId in userIds)
+            {
+                await _repo.AddAsync(new Notification
+                {
+                    UserId = userId,
+                    Type = nt,
+                    Title = title,
+                    Body = body,
+                    TargetType = targetType,
+                    TargetId = targetId,
+                    IsRead = false
+                });
+            }
+
+            if (userIds.Count > 0)
+                await _repo.SaveAsync();
         }
        
     }

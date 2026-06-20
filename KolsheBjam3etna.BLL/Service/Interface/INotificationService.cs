@@ -14,5 +14,6 @@ namespace KolsheBjam3etna.BLL.Service.Interface
         Task<ApiResponse<string>> MarkAllReadAsync(string userId);
 
         Task CreateAsync(string userId, string title, string body, string type, string? targetType = null, int? targetId = null);
+        Task CreateForAllUsersAsync(string title, string body, string type, string? targetType = null, int? targetId = null);
     }
 }

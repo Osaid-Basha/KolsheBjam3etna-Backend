@@ -49,6 +49,9 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
             if (receiverId == senderId)
                 return ApiResponse<int>.Fail("You can't offer on your own post");
 
+            if (await _repo.IsTargetExpiredAsync(type, req.TargetId))
+                return ApiResponse<int>.Fail("الخدمة منتهية ولا يمكن تقديم عرض عليها");
+
             var offer = new Offer
             {
                 SenderId = senderId,
@@ -66,7 +69,7 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
             await _notificationService.CreateAsync(
        receiverId,
        "عرض جديد على طلبك",
-       $"تم تقديم عرض على طلبك بسعر {req.Price} د./ساعة",
+       $"تم تقديم عرض على طلبك بسعر {req.Price} شيقل/ساعة",
        "Offer",
        targetType: offer.TargetType.ToString(), 
        targetId: offer.TargetId                

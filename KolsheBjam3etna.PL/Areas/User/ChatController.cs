@@ -1,7 +1,9 @@
 ﻿using KolsheBjam3etna.BLL.Service.Interface;
 using KolsheBjam3etna.DAL.DTOs.Request;
+using KolsheBjam3etna.DAL.Models;
 using KolsheBjam3etna.PL.Hubs;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
@@ -15,11 +17,16 @@ namespace KolsheBjam3etna.PL.Areas.Identity
     {
         private readonly IChatService _chat;
         private readonly IHubContext<ChatHub> _hub;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ChatController(IChatService chat, IHubContext<ChatHub> hub)
+        public ChatController(
+            IChatService chat,
+            IHubContext<ChatHub> hub,
+            UserManager<ApplicationUser> userManager)
         {
             _chat = chat;
             _hub = hub;
+            _userManager = userManager;
         }
 
         private string MyId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
@@ -28,6 +35,24 @@ namespace KolsheBjam3etna.PL.Areas.Identity
         public async Task<IActionResult> CreateDm([FromBody] CreateDmRequest request)
         {
             var conversationId = await _chat.CreateOrGetDmAsync(MyId, request.OtherUserId);
+            return Ok(new { conversationId });
+        }
+
+        [HttpPost("dm/by-email")]
+        public async Task<IActionResult> CreateDmByEmail([FromBody] CreateDmByEmailRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.OtherUserEmail))
+                return BadRequest(new { message = "Other user email is required." });
+
+            var otherUser = await _userManager.FindByEmailAsync(request.OtherUserEmail.Trim());
+
+            if (otherUser == null)
+                return NotFound(new { message = "No user is linked to this email." });
+
+            if (otherUser.Id == MyId)
+                return BadRequest(new { message = "You cannot start a chat with yourself." });
+
+            var conversationId = await _chat.CreateOrGetDmAsync(MyId, otherUser.Id);
             return Ok(new { conversationId });
         }
 

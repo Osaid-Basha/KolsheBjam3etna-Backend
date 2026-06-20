@@ -46,6 +46,19 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
             };
         }
 
+        public async Task<bool> IsTargetExpiredAsync(OfferTargetType type, int targetId)
+        {
+            return type switch
+            {
+                OfferTargetType.ServiceRequest => await _db.ServiceRequests
+                    .Where(x => x.Id == targetId)
+                    .Select(x => x.DeadlineUtc < DateTime.UtcNow)
+                    .FirstOrDefaultAsync(),
+
+                _ => false
+            };
+        }
+
         public async Task AddAsync(Offer offer) => await _db.Offers.AddAsync(offer);
         public async Task SaveAsync() => await _db.SaveChangesAsync();
 

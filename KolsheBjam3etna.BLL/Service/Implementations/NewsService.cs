@@ -10,13 +10,16 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
     {
         private readonly INewsRepository _repo;
         private readonly ILocalFileStorageService _storage;
+        private readonly INotificationService _notificationService;
 
         public NewsService(
             INewsRepository repo,
-            ILocalFileStorageService storage)
+            ILocalFileStorageService storage,
+            INotificationService notificationService)
         {
             _repo = repo;
             _storage = storage;
+            _notificationService = notificationService;
         }
 
         public async Task<ApiResponse<int>> CreateAsync(CreateNewsRequest req)
@@ -50,12 +53,17 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
                 ImageUrl = imageUrl,
                 IsImportant = req.IsImportant,
                 IsPublished = req.IsPublished,
-                description = req.description.Trim(),
+                description = string.IsNullOrWhiteSpace(req.description)
+                    ? req.Content.Trim()
+                    : req.description.Trim(),
 
             };
 
             await _repo.AddAsync(news);
             await _repo.SaveAsync();
+
+            if (news.IsPublished && news.IsImportant)
+                await SendImportantNewsNotificationAsync(news);
 
             return ApiResponse<int>.Ok(news.Id, "News created successfully");
         }
@@ -82,12 +90,20 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
             if (string.IsNullOrWhiteSpace(req.Category))
                 return ApiResponse<string>.Fail("Category is required");
 
+            var shouldNotify =
+                req.IsImportant &&
+                req.IsPublished &&
+                (!news.IsImportant || !news.IsPublished);
+
             news.Title = req.Title.Trim();
             news.Content = req.Content.Trim();
             news.Source = req.Source.Trim();
             news.Category = req.Category.Trim();
             news.IsImportant = req.IsImportant;
-            news.description = req.description;
+            news.IsPublished = req.IsPublished;
+            news.description = string.IsNullOrWhiteSpace(req.description)
+                ? req.Content.Trim()
+                : req.description.Trim();
 
 
             if (req.Image != null)
@@ -95,7 +111,29 @@ namespace KolsheBjam3etna.BLL.Service.Implementations
 
             await _repo.SaveAsync();
 
+            if (shouldNotify)
+                await SendImportantNewsNotificationAsync(news);
+
             return ApiResponse<string>.Ok("Updated", "News updated successfully");
+        }
+
+        private async Task SendImportantNewsNotificationAsync(News news)
+        {
+            var body = news.description;
+
+            if (string.IsNullOrWhiteSpace(body))
+                body = news.Content;
+
+            if (body.Length > 140)
+                body = $"{body[..137]}...";
+
+            await _notificationService.CreateForAllUsersAsync(
+                "خبر مهم",
+                body,
+                "Announcement",
+                targetType: "News",
+                targetId: news.Id
+            );
         }
 
      

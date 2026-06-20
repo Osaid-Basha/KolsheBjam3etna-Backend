@@ -9,6 +9,7 @@ namespace KolsheBjam3etna.DAL.Repository.Interface
     {
         Task<string?> ResolveReceiverIdAsync(OfferTargetType type, int targetId);
         Task<string?> ResolveTargetTitleAsync(OfferTargetType type, int targetId);
+        Task<bool> IsTargetExpiredAsync(OfferTargetType type, int targetId);
 
         Task AddAsync(Offer offer);
         Task SaveAsync();

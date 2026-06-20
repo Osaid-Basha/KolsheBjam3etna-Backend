@@ -64,6 +64,7 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
                 .Include(e => e.Agenda)
                 .Include(e => e.Registrations)
                 .Include(e => e.Club)
+                .ThenInclude(c => c!.Owner)
                 .Where(e => e.Id == eventId)
                 .Select(e => new EventDetailsDto
                 {
@@ -77,7 +78,10 @@ namespace KolsheBjam3etna.DAL.Repository.Implementations
                     Description = e.Description,
                     Content = e.Content,
                     CoverImageUrl = e.CoverImageUrl,
-                    ClubName = e.Club.Name,
+                    ClubName = e.Club != null ? e.Club.Name : "",
+                    CoordinatorId = e.Club != null && e.Club.Owner != null ? e.Club.Owner.Id : "",
+                    CoordinatorName = e.Club != null && e.Club.Owner != null ? e.Club.Owner.FullName : "",
+                    CoordinatorProfileImageUrl = e.Club != null && e.Club.Owner != null ? e.Club.Owner.ProfileImageUrl : null,
 
                     Agenda = e.Agenda
                         .OrderBy(a => a.Order)
